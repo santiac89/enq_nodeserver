@@ -1,10 +1,15 @@
 var express = require('express');
 var router = express.Router();
 var Queue = require('../models/queue');
+var passport = require('passport');
+
+//passport.authenticate('digest', { session: false }),
+
 /**
 *	GET queues listing
 */
-router.get('/', function(req, res) {
+router.get('/', 
+ function(req, res) {
   
   var queueList = req.app.get('queueList');
 

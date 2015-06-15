@@ -8,11 +8,14 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var queues = require('./routes/queues');
+var groups = require('./routes/groups');
+
 var app = express();
-
-
+var passport = require('passport');
+var DigestStrategy = require('passport-local').DigestStrategy;
 var mongoose = require('mongoose');
-//mongoose.connect('mongodb://localhost:27017/enq');
+
+mongoose.connect('mongodb://localhost:27017/enq');
 
 app.set('queueList',[{id:1, name:"Cola 1", estimated:20},{id:2, name:"CAola 2", estimated:330}]);
 
@@ -27,9 +30,22 @@ app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+/*passport.use(new DigestStrategy({ qop: 'auth' },
+  function(username, done) {
+   
+      return done(null, user, user.password);
+   
+  },
+  function(params, done) {
+    // validate nonces as necessary
+    done(null, true)
+  }
+));*/
+
 app.use('/', routes);
 app.use('/users', users);
 app.use('/queues', queues);
+app.use('/groups', groups);
 
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {
