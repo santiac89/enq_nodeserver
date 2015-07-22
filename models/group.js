@@ -3,9 +3,9 @@ var uniqueValidator = require('mongoose-unique-validator');
 
 var groupSchema = mongoose.Schema({
 
-	id: { type: Number, required: true , unique: true},
+	timeout: { type: Number, required: true , unique: false},
     name: { type: String, required: true , unique: true},
-	paydesks: Array,
+	paydesks:  [{ type: Number, ref: 'Paydesk' }],
     clients: Array
     
 });

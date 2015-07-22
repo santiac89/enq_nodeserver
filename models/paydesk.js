@@ -2,8 +2,9 @@ var mongoose = require('mongoose');
 
 var paydeskSchema = mongoose.Schema({
 
-	id: Number,
-	group: Number,
+	number: { type: Number, required: true , unique: true},
+	group:  { type: Number, ref: 'Group' },
+	estimated: Number,
 	active: Boolean,
 	clients: Array
     

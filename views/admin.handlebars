@@ -1,0 +1,136 @@
+<div class="container-fluid" id="groups">
+	<div class="row">
+		<h1>Administracion de grupos</h1>
+	</div>
+	<div class="row">
+		<div class="col-md-3">
+			<div class="list-group groups">
+				{{#each groups}}
+					<a href="#" class="list-group-item group" data-id="{{id}}">{{name}} <span class="badge" data-id="{{id}}"> <span class="glyphicon glyphicon-remove" ></span></span></a>
+				{{/each}}
+					<a href="#" class="list-group-item group" data-toggle="modal" data-target="#newGroupModal"><span class="glyphicon glyphicon-plus" ></span> Nuevo grupo</a>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="list-group paydesks">
+					<a href="#" class="list-group-item paydesk">{{name}} <span class="badge"> <span class="glyphicon glyphicon-remove" ></span></span></a>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="modal fade" id="newGroupModal">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title">Nuevo grupo</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+					    <label for="inputName">Nombre</label>
+					    <input type="text" class="form-control" id="inputName" placeholder="Nombre">
+					</div>
+
+				    <div class="form-group">
+					    <label for="inputTimeout">Timeout</label>
+					    <input type="text" class="form-control" id="inputTimeout" placeholder="Timeout">
+					</div>
+
+					
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="cancelNewGroup" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+					<button type="button" id="saveNewGroup" class="btn btn-primary">Guardar</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
+
+</div>
+
+
+
+
+<script>
+	$(document).on("ready",function()
+	{
+		$("a.list-group-item.group").on("click",function()
+		{
+			$("a.list-group-item.group").removeClass("active");
+			$(this).addClass("active");
+
+			$.ajax({method: 'GET', url: '/groups/' + $(this).data('id') , 
+			success: function(group) { 
+				
+				$("div.list-group.paydesks a").remove();
+
+				if (group.paydesks.length > 0) {
+
+					$(group.paydesks).each(function(i,e) {
+						$("div.list-group.paydesks").append('<a href="#" class="list-group-item paydesk">'+e.number+' <span class="badge"> <span class="glyphicon glyphicon-remove" ></span></span></a>');
+					});
+				
+				}
+				else
+				{
+					$("div.list-group.paydesks").html('<a href="#" class="list-group-item paydesk empty">No hay cajas asignadas a este grupo.</a>');
+				}
+
+				$("div.list-group.paydesks").append('<a href="#" class="list-group-item paydesk new"><span class="glyphicon glyphicon-plus" ></span> Nueva caja </a>');
+
+				$("a.list-group-item.paydesk.new").on("click",function()
+				{
+					var newPaydeskNumber = prompt("Ingrese el numero de la nueva caja.")
+					
+					if (newPaydeskNumber != undefined)
+					{
+						$("a.list-group-item.paydesk.empty").remove();
+						$('<a href="#" class="list-group-item paydesk">'+newPaydeskNumber+' <span class="badge"> <span class="glyphicon glyphicon-remove" ></span></span></a>').insertBefore($(this));	
+
+					}
+					
+				});
+
+			}})
+
+		});
+
+		$("a.list-group-item.group .badge").on("click",function()
+		{
+			if (confirm("Esta seguro de borrar el grupo?"))
+			{
+				$(this).parent().remove();	
+
+				$.ajax({url: "/groups/" + $(this).data('id'),method: "DELETE",success: function(json) { console.log(json) }})
+
+			}
+			
+		});
+
+
+		$("#cancelNewGroup").on("click",function()
+		{
+			$("#inputTimeout,#inputName").val("");
+		});
+
+		$("#saveNewGroup").on("click",function()
+		{
+			$.ajax({
+				url: "/groups" ,
+				method: "POST", 
+				data : { name: $("#inputName").val(), timeout: $("#inputTimeout").val() }, 
+				success: function(json)
+				{
+					console.log(json);
+					$("#cancelNewGroup").click();
+				}
+			});
+		});
+	});
+
+
+	
+</script>
+

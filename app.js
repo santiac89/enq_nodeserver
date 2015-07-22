@@ -1,4 +1,6 @@
 var express = require('express');
+var app = express();
+
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
@@ -6,23 +8,41 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 
+/*
+ **** ROUTES INCLUDES *****
+*/
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var queues = require('./routes/queues');
 var groups = require('./routes/groups');
 
-var app = express();
-var passport = require('passport');
-var DigestStrategy = require('passport-local').DigestStrategy;
+/*
+  **** THIRD-PARTY INCLUDES
+*/
 var mongoose = require('mongoose');
+var config = require('./config.js');
+var exphbs  = require('express-handlebars');
+ 
 
-mongoose.connect('mongodb://localhost:27017/enq');
 
-app.set('queueList',[{id:1, name:"Cola 1", estimated:20},{id:2, name:"CAola 2", estimated:330}]);
+/*
+ **** THIRD-PARTY CONFIGURATIONS ****
+*/
+var hbs = exphbs.create({defaultLayout: "main"});
+/*var passport = require('passport');
+var DigestStrategy = require('passport-local').DigestStrategy;*/
 
-// view engine setup
+mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
+
+//app.set('queueList',[{id:1, name:"Cola 1", estimated:20},{id:2, name:"Cola 2", estimated:330}]);
+
+app.engine('handlebars', hbs.engine);
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'handlebars');
+
+/*
+ ***** DEFAULT EXPRESSJS CONFIG *******
+*/
 
 app.use(favicon());
 app.use(logger('dev'));
@@ -43,11 +63,19 @@ app.use(express.static(path.join(__dirname, 'public')));
   }
 ));*/
 
+
+/*
+ ***** ROUTES *******
+*/
 app.use('/', routes);
 app.use('/users', users);
 app.use('/queues', queues);
 app.use('/groups', groups);
 
+
+/*
+ **** ERROR HANDLERS CONFIGURATIONS ****
+*/
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');
