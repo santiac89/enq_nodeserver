@@ -1,9 +1,24 @@
 #!/usr/bin/env node
 var debug = require('debug')('enq');
 var app = require('../app');
+var exec = require('child_process').exec;
 
 app.set('port', process.env.PORT || 3000);
 
 var server = app.listen(app.get('port'), function() {
   debug('Express server listening on port ' + server.address().port);
+});
+
+var child = exec('node ./util/service_broadcaster.js');
+
+child.stdout.on('data', function(data) {
+    console.log('stdout: ' + data);
+});
+
+child.stderr.on('data', function(data) {
+    console.log('stderr: ' + data);
+});
+
+child.on('close', function(code) {
+    console.log('closing code: ' + code);
 });
