@@ -1,21 +1,12 @@
 var dgram = require('dgram');
 var app = require('../app');
 var client = dgram.createSocket("udp4");
-var os = require('os');
-var ip = require('ip');
-// Obtener broadcast ip de la red
+var config = require('../config.js');
+var network = require('../util/network');
 
-var broadcastAddress = "192.168.0.255";
-var broadcastPort = 6000;
-
-var serverAddress = ip.address();
-
-//TODO: Pasarlo a archivos de configuracion. Averiguar como se hace.
-
-var serverPort = 3000;
-var serverName = "DevEnqServer";
-
-var serviceInfo = {address: ip.address(), port: serverPort, name: serverName};
+var broadcastAddress = network.broadcast();
+var broadcastPort = config.broadcastPort;
+var serviceInfo = {address: network.address(), port: process.argv[2], name: config.serverName};
 
 client.bind();
 client.on("listening", function () {
@@ -27,7 +18,7 @@ client.on("listening", function () {
     setInterval(function() {
     
 	client.send(message, 0, message.length, broadcastPort, broadcastAddress,function( err, bytes) {
-		console.log("Sent " + message + " to the wire...");
+		console.log("Sent " + message + " to " + broadcastAddress);
 	});
 
     } , 10000);
