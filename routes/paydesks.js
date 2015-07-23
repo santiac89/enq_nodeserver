@@ -1,11 +1,13 @@
 var express = require('express');
 var router = express.Router();
 var app = express();
-
+var Paydesk = require('../models/paydesk');
 
 router.get('/', function(req, res) {
 
-  res.json(req.app.get('paydesks'));
+	Paydesk.find({},function(err,paydesks) {
+		res.json(paydesks);
+	});
 
 });
 

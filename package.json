@@ -20,6 +20,8 @@
     "passport": "~0.2.2",
     "ip": "~0.3.3",
     "winston" : "~1.0.1",
-    "express-handlebars" : "~2.0.1"
+    "express-handlebars" : "~2.0.1",
+    "ejs" : "~2.3.3",
+    "ejs-locals" : "~1.0.2"
   }
 }
