@@ -2,26 +2,44 @@
 var debug = require('debug')('enq');
 var app = require('../app');
 var exec = require('child_process').exec;
-
+var cluster = require('cluster');
 
 app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), function() {
-  debug('Express server listening on port ' + server.address().port);
-});
+if (process.argv[2] == 'nodejs') {
+	
+	if (cluster.isMaster) {
 
+		console.log("NODEJS MODE");
 
+		var child = exec('node ./util/service_broadcaster.js '+ app.get('port'));
 
-var child = exec('node ./util/service_broadcaster.js '+ app.get('port'));
+		// Count the machine's CPUs
+		var cpuCount = require('os').cpus().length;
 
-/*child.stdout.on('data', function(data) {
-    console.log('stdout: ' + data);
-});
+		// Create a worker for each CPU
+		for (var i = 0; i < cpuCount; i += 1) {
+			cluster.fork();
+		}
 
-child.stderr.on('data', function(data) {
-    console.log('stderr: ' + data);
-});
+	// Code to run if we're in a worker process
+	} else {
 
-child.on('close', function(code) {
-    console.log('closing code: ' + code);
-});*/
+		var server = app.listen(app.get('port'), function() {
+			console.log('Express server listening on port ' + server.address().port);
+		});
+
+	}
+} else if (process.argv[3] == 'jx') {
+
+	console.log("JXCORE MODE");
+	var child = exec('node ./util/service_broadcaster.js '+ app.get('port'));
+
+	var server = app.listen(app.get('port'), function() {
+		console.log('Express server listening on port ' + server.address().port);
+	});
+
+} else {
+	console.log("NOPE");
+	process.exit(1);
+}

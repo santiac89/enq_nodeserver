@@ -12,7 +12,7 @@
 			<div class="list-group groups">
 				<a href="#" ng-repeat="group in groups" class="list-group-item group" data-id="{{group._id}}" ng-click="load(group._id)">{{group.name}} - Timeout: {{group.timeout}}
 					<span class="badge" ng-click="delete(group)"><span class="glyphicon glyphicon-remove" ></span></span>
-					<span class="badge" ng-click="edit(group)"><span class="glyphicon glyphicon-edit" ></span></span>
+					
 				</a>
 				<a href="#" class="list-group-item group" data-toggle="modal" data-target="#groupEditModal"><span class="glyphicon glyphicon-plus" ></span> Nuevo grupo</a>
 			</div>

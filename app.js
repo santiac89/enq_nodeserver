@@ -1,13 +1,13 @@
 var express = require('express');
 var app = express();
-
+var cluster = require("cluster");
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
-
+var transaction_logger = require('./util/transaction_logger');
+var extend = require('util')._extend;
 /*
  **** ROUTES INCLUDES *****
 */
@@ -33,7 +33,9 @@ var DigestStrategy = require('passport-local').DigestStrategy;*/
 
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 
-
+mongoose.set('debug', function (coll, method, query, doc) {
+    transaction_logger.info(doc);
+});
 /*
  **** VIEWS CONFIGURATION ****
 */
