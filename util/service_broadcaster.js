@@ -18,7 +18,6 @@ var logger = new (winston.Logger)({
 client.bind();
 client.on("listening", function () {
 
-
 	var message = new Buffer(JSON.stringify(serviceInfo));
 	client.setBroadcast(true);
 
@@ -30,6 +29,4 @@ client.on("listening", function () {
 
     } , 10000);
 
-
-    
 });

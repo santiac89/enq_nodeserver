@@ -34,7 +34,7 @@ var DigestStrategy = require('passport-local').DigestStrategy;*/
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 
 mongoose.set('debug', function (coll, method, query, doc) {
-    transaction_logger.info(doc);
+   // transaction_logger.info(doc);
 });
 /*
  **** VIEWS CONFIGURATION ****

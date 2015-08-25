@@ -1,27 +1,42 @@
 var cluster = require('cluster');
+
+var store = jxcore.store.shared;
+
 var number_generator = {
-	max: 9999,
-	numbers: []
+	max: 9999
 };
 
 number_generator.get = function()
 {
-	var number = 0;
+	store.safeBlock('numbers',function() {
 
-	while (number++ < this.max)
-	{
-		if (!this.numbers[number]) {
-			this.numbers[number] = true;
-			console.log((process.argv[2] == 'nodejs' ? cluster.worker.id : process.threadId) + '-' + number);
-			return number;
+		var number = 0;
+		var numbers = shared.read('numbers').splice(',');
+
+		while (number++ < this.max) {
+			if (!numbers[number]) {
+				numbers[number] = true;
+				store.set('numbers',numbers.toString());
+				//console.log((process.argv[2] == 'nodejs' ? cluster.worker.id : process.threadId) + '-' + number);
+				return number;
+			}
 		}
-	}
+
+	});
+	
 
 };
 
 number_generator.release = function(number)
 {
-	this.numbers[number] = false;
+	store.safeBlock('numbers',function() {
+
+		var numbers = shared.read('numbers').splice(',');
+		numbers[number] = false;
+		store.set('numbers',numbers.toString());
+
+	});
+	
 }
 
 module.exports = number_generator;

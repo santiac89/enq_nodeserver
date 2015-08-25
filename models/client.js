@@ -5,10 +5,7 @@ var clientSchema = mongoose.Schema({
 	number:  { type: Number, required: false , unique: true},
 	hmac:  { type: String, required: true , unique: true},
 	ip:  { type: String, required: true , unique: true},
-	status: Number,
-	last_status_time: Number
-    
-    
+	reenqueue_count: Number
 });
 
 var Client = mongoose.model('Client', clientSchema);
