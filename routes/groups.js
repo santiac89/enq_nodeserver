@@ -7,6 +7,7 @@ var Client = require('../models/client');
 var Paydesk = require('../models/paydesk');
 
 router.get('/', function(req, res) {
+  res.json(Group.schema.paths);
   Group.find({},function(err,groups) {
      res.json(groups);
   });

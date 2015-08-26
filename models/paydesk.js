@@ -1,10 +1,10 @@
 var mongoose = require('mongoose');
+var clientSchema = require('./client');
 
 var paydeskSchema = mongoose.Schema({
 
 	number: { type: Number, required: true , unique: true},
-	group:  { type: Number, ref: 'Group' },
-	current_client:  { type: Number, ref: 'Client' },
+	current_client: [clientSchema],
 	estimated: Number,
 	active: Boolean,
 	clients: Array,
@@ -13,4 +13,4 @@ var paydeskSchema = mongoose.Schema({
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);
 
-module.exports = Paydesk;
+module.exports = paydeskSchema;
