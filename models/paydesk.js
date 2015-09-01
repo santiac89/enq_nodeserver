@@ -1,14 +1,22 @@
-var mongoose = require('mongoose');
+var mongoose = require('mongoose')
+var Schema = mongoose.Schema;
 
 var paydeskSchema = mongoose.Schema({
 
 	number: { type: Number, required: true , unique: true},
-	group:  { type: Number, ref: 'Group' },
+	group:  { type: Schema.Types.ObjectId, ref: 'Group' },
 	current_client:  { type: Number, ref: 'Client' },
 	estimated: Number,
 	active: Boolean,
-	clients: Array,
-    
+
+});
+
+paydeskSchema.pre('remove', function(next){
+    this.model('Group').update({_id: this.group._id },
+      {$pull: {paydesks: this._id}},
+      {multi: true},
+      next
+    );
 });
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);

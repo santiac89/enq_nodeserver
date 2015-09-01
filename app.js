@@ -33,12 +33,13 @@ var DigestStrategy = require('passport-local').DigestStrategy;*/
 
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 
-mongoose.set('debug', function (coll, method, query, doc) {
+/*mongoose.set('debug', function (coll, method, query, doc) {
    // transaction_logger.info(doc);
-});
+});*/
 /*
  **** VIEWS CONFIGURATION ****
 */
+app.set('env','development');
 app.set('views', path.join(__dirname, 'views'));
 
 //var hbs = exphbs.create({defaultLayout: "main"});
@@ -62,9 +63,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /*passport.use(new DigestStrategy({ qop: 'auth' },
   function(username, done) {
-   
+
       return done(null, user, user.password);
-   
+
   },
   function(params, done) {
     // validate nonces as necessary
@@ -98,6 +99,7 @@ app.use(function(req, res, next) {
 if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {
         res.status(err.status || 500);
+        console.log(err.message);
         res.render('error', {
             message: err.message,
             error: err
@@ -109,12 +111,12 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
+    console.log(err.message);
     res.render('error', {
         message: err.message,
         error: {}
     });
 });
-
 
 
 module.exports = app;

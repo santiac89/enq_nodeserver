@@ -1,0 +1,127 @@
+<% layout('../layout') -%>
+<!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
+
+<div class="container-fluid" ng-app="Admin" ng-controller="groupsController" ng-init="refresh()">
+
+  <div class="row">
+    <h1>Administracion de grupos</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-10">
+      <table class="table table-hover">
+        <thead>
+          <th>Nombre</th>
+          <th>Timeout</th>
+          <th>Eliminar</th>
+          <th>Editar</th>
+        </thead>
+        <tbody>
+
+          <tr ng-repeat="group in groups">
+            <td>{{group.name}}</td>
+            <td>{{group.timeout}}</td>
+            <td><a ng-click="delete(group)" href="#"><span class="glyphicon glyphicon-remove" ></span></a></td>
+            <td><a ng-click="_edit(group)" href="#"><span class="glyphicon glyphicon-edit" ></span></a></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <a href="#"  class="btn btn-primary" ng-click="new()"><span class="glyphicon glyphicon-plus" ></span> Nuevo grupo</a>
+
+    </div>
+  </div>
+
+  <div class="modal fade" id="groupEditModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" ng-hide="new">Editar grupo</h4>
+          <h4 class="modal-title" ng-show="new">Nuevo grupo</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+              <label for="inputName">Nombre</label>
+              <input type="text" class="form-control" id="inputName" placeholder="Nombre" ng-model="group.name">
+          </div>
+
+            <div class="form-group">
+              <label for="inputTimeout">Timeout</label>
+              <input type="text" class="form-control" id="inputTimeout" placeholder="Timeout" ng-model="group.timeout">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="save()">Guardar</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+</div>
+
+
+
+
+<script>
+
+  var app = angular.module('Admin', []);
+  app.controller('groupsController', function($scope,$http) {
+
+      $scope.group = {};
+      $scope.isnew = true;
+
+      $scope.refresh = function() {
+        $http.get("/groups").success(function(groups) {
+          $scope.groups = groups;
+        });
+      }
+
+      $scope.save = function() {
+        if ($scope.isnew) {
+          $http.post("/groups",$scope.group).success(function(newGroup) {
+            $scope.reset();
+            $scope.refresh();
+          });
+        } else {
+          $http.put("/groups/"+$scope.group._id,$scope.group).success(function(newGroup) {
+            $scope.reset();
+            $scope.refresh();
+          });
+        }
+      }
+
+      $scope.delete = function(group) {
+        if (confirm("Esta seguro que desea eliminar \""+group.name+"\" ?")) {
+          $http.delete("/groups/"+group._id).success(function(res) {
+            $scope.refresh();
+          });
+        }
+      }
+
+
+
+      $scope.reset = function() {
+        $scope.group = {};
+      }
+
+     $scope.new = function() {
+        $scope.isnew = true;
+        $scope.group = {};
+        $('#groupEditModal').modal();
+      }
+
+      $scope._edit = function(group) {
+        $scope.isnew = false;
+        $scope.group = $.extend({}, group);
+        $scope.group.group = group._id;
+        $('#groupEditModal').modal();
+      }
+
+
+  });
+
+</script>
+
+

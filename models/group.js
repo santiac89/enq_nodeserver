@@ -1,14 +1,15 @@
 var mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
+var Schema = mongoose.Schema;
 
 var groupSchema = mongoose.Schema({
 
 	timeout: { type: Number, required: true , unique: false},
     name: { type: String, required: true , unique: true},
     estimated: Number,
-	paydesks:  [{ type: Number, ref: 'Paydesk' }],
+	paydesks:  [{ type: Schema.Types.ObjectId, ref: 'Paydesk' }],
     clients: Array
-    
+
 });
 
 
@@ -25,6 +26,13 @@ groupSchema.methods.paydeskWithLessClients = function() {
 
     return selectedPaydesk;
 };
+
+groupSchema.pre('remove', function(next){
+    this.model('Paydesk').remove(
+        {_id: { $in: this.paydesks }},
+        next
+    );
+});
 
 
 groupSchema.plugin(uniqueValidator);

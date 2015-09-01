@@ -4,11 +4,11 @@ var app = express();
 var Paydesk = require('../models/paydesk');
 var Client = require('../models/client');
 var Group = require('../models/group');
-var transaction_logger = require('../util/transaction_logger');
+//var transaction_logger = require('../util/transaction_logger');
 
 router.get('/', function(req, res) {
 
-	Paydesk.find({},function(err,paydesks) {
+	Paydesk.find().populate('group').exec(function(err,paydesks) {
 		res.json(paydesks);
 	});
 
@@ -17,28 +17,56 @@ router.get('/', function(req, res) {
 router.post('/',function(req, res) {
 
   new Paydesk(req.body).save(function(err,paydesk) {
-    if (err) res.json(500,err);
 
-    paydesk.populate('group');
-    paydesk.group.paydesks.push = paydesk._id;
-    paydesk.group.save();
+    if (err) {
+    	console.log(err);
+    	res.json(500,err);
+    }
 
-  });	
+    paydesk.populate('group', function (err, user) {
+  		paydesk.group.paydesks.push(paydesk._id);
+    	paydesk.group.save();
+		})
+  });
 
+});
+
+router.put('/:id', function(req, res) {
+  Paydesk.findOne({_id: req.params.id }, function(err,paydesk) {
+    if (paydesk === null) res.json(404,[]);
+    var newPaydesk = new Paydesk(req.body);
+
+    paydesk.number = newPaydesk.number;
+    paydesk.group = newPaydesk.group;
+
+    paydesk.save(function(err,paydesk) {
+      if (err) res.json(500,err);
+      res.json(paydesk);
+    });
+  });
+});
+
+router.delete('/:id', function(req, res) {
+  Paydesk.findOne({_id: req.params.id },function(err,paydesk) {
+    if (err) res.json(404,err);
+    paydesk.remove();
+    res.json(paydesk);
+
+  });
 });
 
 router.get('/:id/clients/next', function(req, res) {
 
 	Paydesk.find({_id: req.params.id }).populate('group current_client').exec(function(err,paydesk) {
-    
+
 	    if (paydesk === null) res.json(404,err);
-	    
+
 	    Group.populate(paydesk.group,{path: 'clients', component: 'Group'});
 
 	    var client = paydesk.group.clients.shift();
 
 	    if (client === undefined) {
-	    	//TODO No hay proximo cliente, dejar boton habilitando
+	    	//TODO No hay proximo cliente, dejar boton habilitado
 	    	res.json({response: 'no_client'});
 	    }
 
@@ -48,23 +76,27 @@ router.get('/:id/clients/next', function(req, res) {
 	      //TODO Guardar registro del cliente para estadisticas y borrarlo si ya es su segunda vez
 	    }
 
-	    paydesk.current_client = client;
-	    paydesk.save();
-
 	    var tcp_client = net.createConnection(3131, client.ip, function() {
-			net.write({paydesk: paydesk_number});
-		}); 
+				net.write({paydesk: paydesk_number});
+			});
 
 	    tcp_client.on('data', function(data) {
 
-	    	if (data.response == 'more_time')
-	    		reenqueue(client, paydesk.group);
+	    	switch (data.response) {
+	    		case 'more_time':
+	    			reenqueue(client, paydesk.group);
+	    		break;
 
-			tcp_client.end();
-			res.json(data);
+	    		case 'confirm':
+	    			paydesk.current_client = client;
+	    			paydesk.save();
+	    		break;
+	    	}
 
+					tcp_client.end();
+					res.json(data);
 	    });
-	    
+
 	    tcp_client.setTimeout(paydesk.group.timeout, function(){
 	    	reenqueue(client, paydesk.group);
 	    	tcp_client.end();
@@ -81,7 +113,7 @@ router.get('/:id/clients/next', function(req, res) {
 
 function reenqueue(client , group) {
 	client.reenqueue_count++;
-	group.clients.push(client);
+	group.clients.push(client._id);
 	group.save();
 }
 

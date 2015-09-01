@@ -9,12 +9,6 @@ var broadcastAddress = network.broadcast();
 var broadcastPort = config.broadcastPort;
 var serviceInfo = {address: network.address(), port: process.argv[2], name: config.serverName};
 
-var logger = new (winston.Logger)({
-    transports: [
-      new (winston.transports.DailyRotateFile)({ filename: 'log/broadcast_service.log' ,handleExceptions: true})
-    ]
-});
-
 client.bind();
 client.on("listening", function () {
 
@@ -22,11 +16,9 @@ client.on("listening", function () {
 	client.setBroadcast(true);
 
     setInterval(function() {
-    
-	client.send(message, 0, message.length, broadcastPort, broadcastAddress,function( err, bytes) {
-		logger.info("Sent " + message + " to " + broadcastAddress);
-	});
 
-    } , 10000);
+	client.send(message, 0, message.length, broadcastPort, broadcastAddress);
+
+    } , 15000);
 
 });

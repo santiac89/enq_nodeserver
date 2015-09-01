@@ -1,0 +1,133 @@
+<% layout('../layout') -%>
+<!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
+
+<div class="container-fluid" ng-app="Admin" ng-controller="paydesksController" ng-init="refresh()">
+
+  <div class="row">
+    <h1>Administracion de cajas</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-10">
+      <table class="table table-hover">
+        <thead>
+          <th>Numero</th>
+          <th>Tipo de atencion</th>
+          <th>Eliminar</th>
+          <th>Editar</th>
+        </thead>
+        <tbody>
+
+          <tr ng-repeat="paydesk in paydesks">
+            <td>{{paydesk.number}}</td>
+            <td>{{paydesk.group.name}}</td>
+            <td><a ng-click="delete(paydesk)" href="#"><span class="glyphicon glyphicon-remove" ></span></a></td>
+            <td><a ng-click="_edit(paydesk)" href="#"><span class="glyphicon glyphicon-edit" ></span></a></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <a href="#"  class="btn btn-primary" ng-click="new()"><span class="glyphicon glyphicon-plus" ></span> Nueva caja</a>
+
+    </div>
+  </div>
+
+  <div class="modal fade" id="paydeskEditModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">Agregar caja</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+              <label for="inputNumber">Numero de caja</label>
+              <input type="text" class="form-control" id="inputNumber" placeholder="Numero de caja" ng-model="paydesk.number">
+              <label for="inputGroup">Tipo de atencion</label>
+              <select id="selectGroup" class="form-control" ng-model="paydesk.group">
+                <% groups.forEach(function(group) { %>
+                  <option value="<%= group._id %>"><%= group.name %></option>
+                <% }); %>
+              </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button"  class="btn btn-default" data-dismiss="modal">Cancelar</button>
+          <button type="button"  class="btn btn-primary" data-dismiss="modal" ng-click="save()">Guardar</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
+
+</div>
+
+
+
+
+<script>
+
+  var app = angular.module('Admin', []);
+  app.controller('paydesksController', function($scope,$http) {
+
+      $scope.new = true;
+      $scope.paydesk = {};
+
+
+      $scope.refresh = function() {
+        $http.get("/paydesks").success(function(paydesks) {
+          $scope.paydesks = paydesks;
+        });
+      }
+
+      $scope.save = function() {
+        if ($scope.isnew) {
+          $http.post("/paydesks",$scope.paydesk).success(function(newPaydesk) {
+            $scope.reset();
+            $scope.refresh();
+          });
+        } else {
+          $http.put("/paydesks/"+$scope.paydesk._id,$scope.paydesk).success(function(newPaydesk) {
+            $scope.reset();
+            $scope.refresh();
+          });
+        }
+      }
+
+      $scope.delete = function(paydesk) {
+        if (confirm("Esta seguro que desea eliminar la caja numero "+paydesk.number+" ?")) {
+          $http.delete("/paydesks/"+paydesk._id).success(function(res) {
+            $scope.refresh();
+          });
+        }
+      }
+
+      $scope.new = function() {
+        $scope.isnew = true;
+        $scope.paydesk = {group:  "<%= groups[0]._id %>" };
+        $('#paydeskEditModal').modal();
+      }
+
+      $scope._edit = function(paydesk) {
+        $scope.isnew = false;
+        $scope.paydesk = $.extend({}, paydesk);
+        $scope.paydesk.group = paydesk.group._id;
+        $('#paydeskEditModal').modal();
+      }
+
+      $scope.reset = function() {
+        $scope.paydesk = {};
+      }
+
+      $scope.edit = function(group)
+      {
+        $scope.new = false;
+      }
+
+
+  });
+
+</script>
+
+

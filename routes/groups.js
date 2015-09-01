@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var app = express();
-var number_generator = require('../util/number_generator');
+var number_generator = require('../util/local_number_generator');
 var Group = require('../models/group');
 var Client = require('../models/client');
 var Paydesk = require('../models/paydesk');
@@ -54,9 +54,9 @@ router.delete('/:id', function(req, res) {
 router.post('/:id/clients', function(req, res) {
 
   Group.findOne({_id: req.params.id }, function(err,group) {
-      
+
       if (group === null) res.json(404,err);
-      
+
       var client = new Client(req.body);
 
       client.number = number_generator.get();
@@ -71,17 +71,18 @@ router.post('/:id/clients', function(req, res) {
         group.clients.push(client._id);
 
         group.save(function(err,group) {
-        
+
           if (err) {
               console.log(err);
               res.json(500,err);
           }
-        
+
           res.json({estimated: 0, number: client.number});
-        
+
         });
 
       });
+
   });
 
 });
