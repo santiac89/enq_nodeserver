@@ -4,6 +4,8 @@ var app = express();
 var Paydesk = require('../models/paydesk');
 var Client = require('../models/client');
 var Group = require('../models/group');
+var net = require('net');
+
 //var transaction_logger = require('../util/transaction_logger');
 
 router.get('/', function(req, res) {
@@ -57,13 +59,14 @@ router.delete('/:id', function(req, res) {
 
 router.get('/:id/clients/next', function(req, res) {
 
-	Paydesk.find({_id: req.params.id }).populate('group current_client').exec(function(err,paydesk) {
+	Paydesk.findOne({_id: req.params.id }).populate('group current_client').exec(function(err,paydesk) {
 
 	    if (paydesk === null) res.json(404,err);
 
-	    Group.populate(paydesk.group,{path: 'clients', component: 'Group'});
 
-	    var client = paydesk.group.clients.shift();
+	    var client_id = paydesk.group.clients.shift();
+
+	    Client.findOne({_id: client_id}, function(err,client) {
 
 	    if (client === undefined) {
 	    	//TODO No hay proximo cliente, dejar boton habilitado
@@ -76,8 +79,9 @@ router.get('/:id/clients/next', function(req, res) {
 	      //TODO Guardar registro del cliente para estadisticas y borrarlo si ya es su segunda vez
 	    }
 
+
 	    var tcp_client = net.createConnection(3131, client.ip, function() {
-				net.write({paydesk: paydesk_number});
+				tcp_client.write(JSON.stringify({paydesk: paydesk.number}));
 			});
 
 	    tcp_client.on('data', function(data) {
@@ -108,6 +112,8 @@ router.get('/:id/clients/next', function(req, res) {
 	    	tcp_client.end();
 	    	res.json({response: 'client_offline'});
 	    });
+	    });
+
 	});
 });
 

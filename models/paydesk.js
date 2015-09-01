@@ -5,7 +5,7 @@ var paydeskSchema = mongoose.Schema({
 
 	number: { type: Number, required: true , unique: true},
 	group:  { type: Schema.Types.ObjectId, ref: 'Group' },
-	current_client:  { type: Number, ref: 'Client' },
+	current_client:  { type: Schema.Types.ObjectId , ref: 'Client' },
 	estimated: Number,
 	active: Boolean,
 

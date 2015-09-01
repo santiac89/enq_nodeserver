@@ -8,7 +8,7 @@ var groupSchema = mongoose.Schema({
     name: { type: String, required: true , unique: true},
     estimated: Number,
 	paydesks:  [{ type: Schema.Types.ObjectId, ref: 'Paydesk' }],
-    clients: Array
+    clients: [{ type: Schema.Types.ObjectId, ref: 'Client' }],
 
 });
 
