@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var app = express();
 var number_generator = require('../util/local_number_generator');
 var Group = require('../models/group');
 var Client = require('../models/client');

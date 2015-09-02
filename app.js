@@ -5,7 +5,8 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var transaction_logger = require('./util/transaction_logger');
+var events = require('events');
+
 /*
  **** ROUTES INCLUDES *****
 */
@@ -19,7 +20,7 @@ var paydesks = require('./routes/paydesks');
 var mongoose = require('mongoose');
 var config = require('./config.js');
 var engine = require('ejs-locals');
-
+var transaction_logger = require('./util/transaction_logger');
 
 /*
  **** THIRD-PARTY CONFIGURATIONS ****
@@ -30,8 +31,7 @@ var DigestStrategy = require('passport-local').DigestStrategy;*/
 
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 
-app.set('event_bus', new require('events').EventEmitter());
-
+app.set('event_bus', new events.EventEmitter());
 /*
  **** VIEWS CONFIGURATION ****
 */

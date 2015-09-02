@@ -1,19 +1,17 @@
 var express = require('express');
 var router = express.Router();
-var app = express();
 var Paydesk = require('../models/paydesk');
 var Client = require('../models/client');
 var Group = require('../models/group');
 var net = require('net');
+var event_bus = router.get('event_bus');
 
 //var transaction_logger = require('../util/transaction_logger');
 
 router.get('/', function(req, res) {
-
 	Paydesk.find().populate('group').exec(function(err,paydesks) {
 		res.json(paydesks);
 	});
-
 });
 
 router.post('/',function(req, res) {
@@ -68,7 +66,7 @@ router.get('/:id/clients/next', function(req, res) {
 
 	    if (next_client_id === undefined) {
 	    	//TODO No hay proximo cliente, dejar boton habilitado
-	    	res.json({response: 'no_client'});
+	    	res.json(204,{});
 	    }
 
       if (paydesk.current_client) {
@@ -82,7 +80,7 @@ router.get('/:id/clients/next', function(req, res) {
   	    var tcp_client = net.createConnection(3131, client.ip, function() {
   				tcp_client.write(JSON.stringify({paydesk: paydesk.number}));
           set_called(client);
-          app.get('event_bus').emit('client_response', client);
+          event_bus.emit('client_response', client);
   			});
 
   	    tcp_client.on('data', function(data) {
@@ -93,25 +91,24 @@ router.get('/:id/clients/next', function(req, res) {
             set_reenqueued(client, paydesk.group, data.response);
           }
 
-          app.get('event_bus').emit('client_response', client);
-
+          event_bus.emit('client_response', client);
 					tcp_client.end();
-
   	    });
 
   	    tcp_client.setTimeout(paydesk.group.timeout, function(){
   	    	set_reenqueued(client, paydesk.group, "client_response_timeout");
-          app.get('event_bus').emit('client_response', client);
+          event_bus.emit('client_response', client);
   	    	tcp_client.end();
   	    });
 
   	    tcp_client.on('error', function(err)
   	    {
           set_reenqueued(client, paydesk.group, "client_gone");
-          app.get('event_bus').emit('client_response', client);
+          event_bus.emit('client_response', client);
   	    	tcp_client.end();
   	    });
 
+        res.json(client);
 
       });
 	});
