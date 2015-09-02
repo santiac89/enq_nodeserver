@@ -6,11 +6,7 @@ var cluster = require('cluster');
 
 app.set('port', process.env.PORT || 3000);
 
-if (process.argv[2] == 'nodejs') {
-
 	if (cluster.isMaster) {
-
-		console.log("NODEJS MODE");
 
 		var child = exec('node ./util/service_broadcaster.js '+ app.get('port'));
 
@@ -29,17 +25,12 @@ if (process.argv[2] == 'nodejs') {
 			console.log('Express server listening on port ' + server.address().port);
 		});
 
+		app.set('io',require('socket.io')(server));
+
+		app.get('io').on('connection', function(ws) {
+		  app.get('event_bus').on('client_response', function(res) {
+		    ws.emit('client_response', res);
+		  });
+		});
+
 	}
-} else if (process.argv[3] == 'jx') {
-
-	console.log("JXCORE MODE");
-	var child = exec('jx ./util/service_broadcaster.js '+ app.get('port'));
-
-	var server = app.listen(app.get('port'), function() {
-		console.log('Express server listening on port ' + server.address().port);
-	});
-
-} else {
-	console.log("NOPE");
-	process.exit(1);
-}

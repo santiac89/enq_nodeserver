@@ -63,64 +63,82 @@ router.get('/:id/clients/next', function(req, res) {
 
 	    if (paydesk === null) res.json(404,err);
 
+	    var next_client_id = paydesk.group.clients.shift();
+      paydesk.group.save();
 
-	    var client_id = paydesk.group.clients.shift();
-
-	    Client.findOne({_id: client_id}, function(err,client) {
-
-	    if (client === undefined) {
+	    if (next_client_id === undefined) {
 	    	//TODO No hay proximo cliente, dejar boton habilitado
 	    	res.json({response: 'no_client'});
 	    }
 
-	    paydesk.group.save();
+      if (paydesk.current_client) {
+        //TODO Guardar registro del cliente para estadisticas y borrarlo
+      }
 
-	    if (paydesk.current_client) {
-	      //TODO Guardar registro del cliente para estadisticas y borrarlo si ya es su segunda vez
-	    }
+      Client.findOne({_id: next_client_id}, function(err,client) {
 
+        paydesk.current_client = next_client_id;
 
-	    var tcp_client = net.createConnection(3131, client.ip, function() {
-				tcp_client.write(JSON.stringify({paydesk: paydesk.number}));
-			});
+  	    var tcp_client = net.createConnection(3131, client.ip, function() {
+  				tcp_client.write(JSON.stringify({paydesk: paydesk.number}));
+          set_called(client);
+          app.get('event_bus').emit('client_response', client);
+  			});
 
-	    tcp_client.on('data', function(data) {
+  	    tcp_client.on('data', function(data) {
 
-	    	switch (data.response) {
-	    		case 'more_time':
-	    			reenqueue(client, paydesk.group);
-	    		break;
+          if (data.response == 'confirm') {
+            set_confirmed(client, paydesk);
+          } else {
+            set_reenqueued(client, paydesk.group, data.response);
+          }
 
-	    		case 'confirm':
-	    			paydesk.current_client = client;
-	    			paydesk.save();
-	    		break;
-	    	}
+          app.get('event_bus').emit('client_response', client);
 
 					tcp_client.end();
-					res.json(data);
-	    });
 
-	    tcp_client.setTimeout(paydesk.group.timeout, function(){
-	    	reenqueue(client, paydesk.group);
-	    	tcp_client.end();
-	    	res.json({response: 'client_response_timeout'})
-	    });
+  	    });
 
-	    tcp_client.on('error', function(err)
-	    {
-	    	tcp_client.end();
-	    	res.json({response: 'client_offline'});
-	    });
-	    });
+  	    tcp_client.setTimeout(paydesk.group.timeout, function(){
+  	    	set_reenqueued(client, paydesk.group, "client_response_timeout");
+          app.get('event_bus').emit('client_response', client);
+  	    	tcp_client.end();
+  	    });
 
+  	    tcp_client.on('error', function(err)
+  	    {
+          set_reenqueued(client, paydesk.group, "client_gone");
+          app.get('event_bus').emit('client_response', client);
+  	    	tcp_client.end();
+  	    });
+
+
+      });
 	});
 });
 
-function reenqueue(client , group) {
-	client.reenqueue_count++;
+function set_reenqueued(client, group, status) {
+
+  client.reenqueue_count++;
+  client.status = status;
+  client.save();
+
 	group.clients.push(client._id);
 	group.save();
+
+}
+
+function set_confirmed(client, paydesk) {
+  paydesk.current_client = client._id;
+  client.status = "confirmed";
+
+  paydesk.save();
+  client.save();
+}
+
+function set_called(client) {
+  client.status = 'called';
+  client.save();
 }
 
 module.exports = router;
