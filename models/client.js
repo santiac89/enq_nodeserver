@@ -6,6 +6,9 @@ var clientSchema = mongoose.Schema({
 	hmac:  { type: String, required: true , unique: true},
 	ip:  { type: String, required: true , unique: true},
 	reenqueue_count: Number,
+  enqueue_time: Number,
+  called_time: Number,
+  exit_time: Number,
   status: String
 });
 

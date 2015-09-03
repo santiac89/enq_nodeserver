@@ -61,17 +61,34 @@ router.get('/:id/clients/next', function(req, res) {
 
 	    if (paydesk === null) res.json(404,err);
 
+      if (paydesk.current_client) {
+
+        if (paydesk.current_client.reenqueue_count == 2) {
+
+          paydesk.current_client.remove(function(err,client) {
+
+            var client_history = ClientHistory.new();
+
+            client_history.last_status = paydesk.current_client.status;
+            client_history.enqueue_time = paydesk.current_client.enqueue_time;
+            client_history.called_time = paydesk.current_client.called_time;
+            client_history.exit_time = paydesk.current_client.exit_time;
+            client_history.number = paydesk.current_client.number;
+            client_history.number = paydesk.current_client.hmac;
+
+            client_history.save();
+
+          });
+
+        }
+      }
+
 	    var next_client_id = paydesk.group.clients.shift();
       paydesk.group.save();
 
 	    if (next_client_id === undefined) {
-	    	//TODO No hay proximo cliente, dejar boton habilitado
 	    	res.json(204,{});
 	    }
-
-      if (paydesk.current_client) {
-        //TODO Guardar registro del cliente para estadisticas y borrarlo
-      }
 
       Client.findOne({_id: next_client_id}, function(err,client) {
 
@@ -115,14 +132,11 @@ router.get('/:id/clients/next', function(req, res) {
 });
 
 function set_reenqueued(client, group, status) {
-
-  client.reenqueue_count++;
-  client.status = status;
-  client.save();
-
-	group.clients.push(client._id);
-	group.save();
-
+    client.reenqueue_count++;
+    client.status = status;
+    client.save();
+    group.clients.push(client._id);
+    group.save();
 }
 
 function set_confirmed(client, paydesk) {
@@ -135,6 +149,7 @@ function set_confirmed(client, paydesk) {
 
 function set_called(client) {
   client.status = 'called';
+  client.called_time = Date.now();
   client.save();
 }
 

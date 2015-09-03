@@ -59,6 +59,7 @@ router.post('/:id/clients', function(req, res) {
       var client = new Client(req.body);
 
       client.number = number_generator.get();
+      client.enqueue_time = Date.now();
 
       client.save(function(err) {
 
