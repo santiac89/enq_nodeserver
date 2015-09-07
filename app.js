@@ -5,7 +5,7 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var events = require('events');
+
 
 /*
  **** ROUTES INCLUDES *****
@@ -31,7 +31,7 @@ var DigestStrategy = require('passport-local').DigestStrategy;*/
 
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 
-app.set('event_bus', new events.EventEmitter());
+
 /*
  **** VIEWS CONFIGURATION ****
 */
@@ -107,7 +107,6 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    console.log(err.message);
     res.render('error', {
         message: err.message,
         error: {}

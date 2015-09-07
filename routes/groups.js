@@ -68,7 +68,7 @@ router.post('/:id/clients', function(req, res) {
           res.json(500,err);
         }
 
-        group.clients.push(client._id);
+        group.enqueueClient(client);
 
         group.save(function(err,group) {
 

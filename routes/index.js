@@ -22,4 +22,10 @@ router.get('/admin/paydesks', function(req, res) {
   });
 });
 
+router.get('/caller', function(req, res) {
+  Paydesk.findOne({number: 15}).populate('group').exec(function(err,paydesk) {
+    res.render('caller',{paydesk: paydesk});
+  });
+});
+
 module.exports = router;

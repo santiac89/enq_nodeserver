@@ -13,19 +13,33 @@ var groupSchema = mongoose.Schema({
 });
 
 
-groupSchema.methods.paydeskWithLessClients = function() {
-
-	var min = 999;
-    var selectedPaydesk = {};
-    for (var i in this.paydesks) {
-      if (this.paydesks[i].clients.length < min) {
-        min = this.paydesks[i].clients.length;
-        selectedPaydesk = this.paydesks[i];
-      }
-    }
-
-    return selectedPaydesk;
+groupSchema.methods.enqueueClient = function(client, callback) {
+    // if (typeof callback === 'undefined') { callback = function() {}; };
+	this.clients.push(client._id);
+    return this;
+    // this.save(function(err) {
+        // if (!err) callback();
+    // });
 };
+
+groupSchema.methods.reenqueueClient = function(client, callback) {
+    // if (typeof callback === 'undefined') { callback = function() {}; };
+    this.clients.removeObj(client);
+    this.clients.push(client);
+    return this;
+    // this.save(function(err) {
+        // if (!err) callback();
+    // });
+};
+
+groupSchema.methods.removeClient = function(client, callback) {
+    // if (typeof callback === 'undefined') { callback = function() {}; };
+    this.clients.removeObj(client);
+    return this;
+    // this.save(function(err) {
+        // if (!err) callback();
+    // });
+}
 
 groupSchema.pre('remove', function(next){
     this.model('Paydesk').remove(
