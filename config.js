@@ -7,4 +7,5 @@ config.mongo.address = "localhost";
 config.mongo.port = 27017;
 config.mongo.db = "enq";
 config.callTimeout = 5000;
+config.maxReenqueueCount = 2;
 module.exports = config;

@@ -4,7 +4,7 @@ var Schema = mongoose.Schema;
 var config = require('../config.js');
 var net = require('net');
 
-var paydeskSchema = mongoose.Schema({
+var paydeskSchema = mongoose.Schema.create({
 
   number: { type: Number, required: true , unique: true},
   group:  { type: Schema.Types.ObjectId, ref: 'Group' },
@@ -14,6 +14,7 @@ var paydeskSchema = mongoose.Schema({
 
 });
 
+
 paydeskSchema.pre('remove', function(next){
     this.model('Group').update({_id: this.group._id },
       {$pull: {paydesks: this._id}},
@@ -22,13 +23,19 @@ paydeskSchema.pre('remove', function(next){
     );
 });
 
+paydeskSchema.methods.enqueueClient = function(client, callback) {
+  this.clients.current_client = client._id;
+}
+
 paydeskSchema.methods.callClient = function(client) {
 
   var self = this;
+  self.populate('group').execPopulate();
 
   var tcp_client = net.createConnection(3131, client.ip, function() {
     tcp_client.write(JSON.stringify({paydesk: self.number}));
-    client.setCalled().save();
+    client.setCalled();
+    client.save();
   });
 
 
@@ -36,20 +43,26 @@ paydeskSchema.methods.callClient = function(client) {
 
     if (data.response == 'confirm') {
 
-      self.enqueueClient(client);//.save(function(p) {
       client.setConfirmed();
-      self.save();
       client.save();
-      event_bus.emit('client_response', client);
+      self.enqueueClient(client);
+      self.save();
+
+      event_bus.emit('client_response', {response: 'confirmed'});
 
     } else {
 
-      self.group.enqueueClient(client);
       client.setReenqueued(data.response);
-      self.group.save();
-      client.save();
-      event_bus.emit('client_response', client);
 
+      if (client.hasReachedLimit()) {
+        client.removeAndLog();
+        event_bus.emit('client_response', {response: 'queue_limit_reached'});
+      } else {
+        client.save();
+        self.group.enqueueClient(client);
+        self.group.save();
+        event_bus.emit('client_response', {response: 'more_time'});
+      }
     }
 
     tcp_client.end();
@@ -58,34 +71,26 @@ paydeskSchema.methods.callClient = function(client) {
 
   tcp_client.setTimeout(config.callTimeout, function() {
 
-    if (self.group == undefined) self.populate('group').exec();
+    client.setReenqueued("client_response_timeout");
 
-    self.group.enqueueClient(client);
-    client.setReenqueued("client_response_timeout"); //,function() {
-    self.group.save();
-    client.save();
-    event_bus.emit('client_response', client);
-    //   });
-    // });
+    if (client.hasReachedLimit()) {
+        client.removeAndLog();
+        event_bus.emit('client_response', {response: 'queue_limit_reached'});
+    } else {
+        client.save();
+        self.group.enqueueClient(client);
+        self.group.save();
+        event_bus.emit('client_response', {response: 'response_timeout'});
+    }
   });
 
   tcp_client.on('error', function(err) {
-    console.log(err)
-    client.setCancelled();
-    client.addToHistory();
-    client.remove();
-    event_bus.emit('client_response', client);
-
+    client.setErrored(err);
+    client.removeAndLog();
+    event_bus.emit('client_response', {response: 'error'});
   });
 }
 
-paydeskSchema.methods.enqueueClient = function(client, callback) {
-  // if (typeof callback === 'undefined') { callback = function() {}; };
-  this.clients.current_client = client._id;
-  // this.save(function(err) {
-    // if (!err) callback();
-  // });
-}
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);
 

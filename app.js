@@ -6,6 +6,14 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+/*
+  **** THIRD-PARTY INCLUDES
+*/
+require('./util/prototypes');
+var mongoose = require('mongoose');
+var config = require('./config.js');
+var engine = require('ejs-locals');
+var transaction_logger = require('./util/transaction_logger');
 
 /*
  **** ROUTES INCLUDES *****
@@ -15,33 +23,15 @@ var groups = require('./routes/groups');
 var paydesks = require('./routes/paydesks');
 
 /*
-  **** THIRD-PARTY INCLUDES
-*/
-var mongoose = require('mongoose');
-var config = require('./config.js');
-var engine = require('ejs-locals');
-var transaction_logger = require('./util/transaction_logger');
-
-/*
  **** THIRD-PARTY CONFIGURATIONS ****
 */
-
-/*var passport = require('passport');
-var DigestStrategy = require('passport-local').DigestStrategy;*/
-
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
-
 
 /*
  **** VIEWS CONFIGURATION ****
 */
 app.set('env','development');
 app.set('views', path.join(__dirname, 'views'));
-
-//var hbs = exphbs.create({defaultLayout: "main"});
-//app.engine('handlebars', hbs.engine);
-//app.set('view engine', 'handlebars');
-
 app.engine('ejs', engine);
 app.set('view engine', 'ejs');
 
@@ -49,26 +39,12 @@ app.set('view engine', 'ejs');
 /*
  ***** DEFAULT EXPRESSJS CONFIG *******
 */
-
 app.use(favicon());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-/*passport.use(new DigestStrategy({ qop: 'auth' },
-  function(username, done) {
-
-      return done(null, user, user.password);
-
-  },
-  function(params, done) {
-    // validate nonces as necessary
-    done(null, true)
-  }
-));*/
-
 
 /*
  ***** ROUTES *******

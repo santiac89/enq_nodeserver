@@ -1,17 +1,32 @@
 var mongoose = require('mongoose');
+var config = require('../config');
 
-var clientSchema = mongoose.Schema({
-
-	number:  { type: Number, required: false , unique: true},
-	hmac:  { type: String, required: true , unique: true},
-	ip:  { type: String, required: true , unique: true},
-	reenqueue_count: { type: Number, default: 0 },
+var clientSchema = mongoose.Schema.create({
+  number:  { type: Number, required: false , unique: true},
+  hmac:  { type: String, required: true , unique: true},
+  ip:  { type: String, required: true , unique: true},
+  reenqueue_count: { type: Number, default: 0 },
   enqueue_time: Number,
   called_time: Number,
   exit_time: Number,
-  status: { type: String, default: "idle" }
+  status: { type: String, default: "idle" },
 });
 
+var clientHistorySchema = mongoose.Schema.create({
+  number:  { type: Number, required: false },
+  hmac:  { type: String, required: true },
+  ip:  { type: String, required: true },
+  reenqueue_count: { type: Number },
+  enqueue_time: Number,
+  called_time: Number,
+  exit_time: Number,
+  status: { type: String },
+  _errors: String
+});
+
+/*
+  If client removed, remove it also from paydesks and groups
+*/
 clientSchema.pre('remove', function(next) {
 
     this.model('Paydesk').update({
@@ -37,32 +52,56 @@ clientSchema.pre('remove', function(next) {
 });
 
 clientSchema.methods.setReenqueued = function(status) {
-  // if (typeof callback === 'undefined') { callback = function() {}; };
   this.reenqueue_count++;
   this.status = status;
   return this;
-  // this.save(function(err) {
-  //   if (!err) callback();
-  // });
 }
 
-clientSchema.methods.setConfirmed = function(callback) {
-  // if (typeof callback === 'undefined') { callback = function() {}; };
+clientSchema.methods.setConfirmed = function() {
   this.status = "confirmed";
   return this;
-  // this.save(function(err) {
-    // if (!err) callback();
-  // });
 }
 
 clientSchema.methods.setCalled = function() {
-  // if (typeof callback === 'undefined') { callback = function() {}; };
   this.status = 'called';
   this.called_time = Date.now();
   return this;
-  // this.save(function(err) {
-    // if (!err) callback();
-  // });
+}
+
+clientSchema.methods.setErrored = function(err) {
+  this.status = 'errored';
+  this.exit_time = Date.now();
+  this._errors = JSON.stringify(err);
+  return this;
+}
+
+clientSchema.methods.setCompleted = function() {
+  this.status = 'completed';
+  this.exit_time = Date.now();
+  return this;
+}
+
+clientSchema.methods.setReenqueueLimitReached = function() {
+  this.status = 'reenqueue_limit';
+  this.exit_time = Date.now();
+  return this;
+}
+
+clientSchema.methods.hasReachedLimit = function() {
+  return this.reenqueue_count > config.maxReenqueueCount;
+}
+
+clientSchema.methods.saveToHistory = function() {
+  var clientHistory = mongoose.model('ClientHistory', clientHistorySchema);
+  var historical = new clientHistory();
+  historical.restore(this.backup());
+  historical.save();
+  return historical;
+}
+
+clientSchema.methods.removeAndLog = function() {
+  this.saveToHistory();
+  this.remove();
 }
 
 var Client = mongoose.model('Client', clientSchema);

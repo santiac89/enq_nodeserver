@@ -60,17 +60,10 @@ router.get('/:id/clients/next', function(req, res) {
 	Paydesk.findOne({_id: req.params.id }).populate('group current_client').exec(function(err,paydesk) {
 
     if (!paydesk) res.json(404,err);
+
     Client.findOne({_id: paydesk.group.clients.last()}, function(err,next_client) {
 
-      if (paydesk.current_client) { // && paydesk.current_client.reenqueue_count == 2) {
-        if (paydesk.current_client.reenqueue_count == 2) {
-          paydesk.current_client.remove(function(err,client) {
-              client.addToHistory();
-          });
-        }
-      }
-
-	    if (!next_client) res.json(204,{});
+	    if (next_client == null) { res.json({}); return; };
 
       paydesk.group.removeClient(next_client);
       paydesk.callClient(next_client);
@@ -80,19 +73,5 @@ router.get('/:id/clients/next', function(req, res) {
     });
 	});
 });
-
-
-function save_client_history(client) {
-  // var client_history = ClientHistory.new();
-
-  // client_history.last_status = paydesk.current_client.status;
-  // client_history.enqueue_time = paydesk.current_client.enqueue_time;
-  // client_history.called_time = paydesk.current_client.called_time;
-  // client_history.exit_time = paydesk.current_client.exit_time;
-  // client_history.number = paydesk.current_client.number;
-  // client_history.number = paydesk.current_client.hmac;
-
-  // client_history.save();
-}
 
 module.exports = router;
