@@ -88,12 +88,12 @@ clientSchema.methods.setReenqueueLimitReached = function() {
 }
 
 clientSchema.methods.hasReachedLimit = function() {
-  return this.reenqueue_count > config.maxReenqueueCount;
+  return this.reenqueue_count > config.max_reenqueue_count;
 }
 
 clientSchema.methods.saveToHistory = function() {
-  var clientHistory = mongoose.model('ClientHistory', clientHistorySchema);
-  var historical = new clientHistory();
+  var ClientHistory = mongoose.model('ClientHistory', clientHistorySchema);
+  var historical = new ClientHistory();
   historical.restore(this.backup());
   historical.save();
   return historical;
@@ -105,8 +105,5 @@ clientSchema.methods.removeAndLog = function() {
 }
 
 var Client = mongoose.model('Client', clientSchema);
-
-Client.STATUS = { waiting: 0, called: 1, confirmed: 2, cancelled: 3 };
-
 
 module.exports = Client;

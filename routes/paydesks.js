@@ -2,9 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Paydesk = require('../models/paydesk');
 var Client = require('../models/client');
-var Group = require('../models/group');
-var net = require('net');
-var event_bus = require('../util/event_bus');
+var ClientCaller = require('../util/client_caller');
 
 //var transaction_logger = require('../util/transaction_logger');
 
@@ -63,10 +61,11 @@ router.get('/:id/clients/next', function(req, res) {
 
     Client.findOne({_id: paydesk.group.clients.last()}, function(err,next_client) {
 
-	    if (next_client == null) { res.json({}); return; };
+	    if (!next_client) { res.json({}); return; };
 
       paydesk.group.removeClient(next_client);
-      paydesk.callClient(next_client);
+
+      ClientCaller.Call(paydesk, next_client);
 
       res.json(next_client);
 

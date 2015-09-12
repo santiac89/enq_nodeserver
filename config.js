@@ -1,11 +1,11 @@
 var config = {};
 
-config.serverName = "DevEnqServer";
-config.broadcastPort = 6000;
+config.server_name = "DevEnqServer";
+config.broadcast_port = 6000;
 config.mongo = {};
 config.mongo.address = "localhost";
 config.mongo.port = 27017;
 config.mongo.db = "enq";
-config.callTimeout = 5000;
-config.maxReenqueueCount = 2;
+config.call_timeout = 5000;
+config.max_reenqueue_count = 2;
 module.exports = config;
