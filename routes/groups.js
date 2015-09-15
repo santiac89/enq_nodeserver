@@ -46,7 +46,6 @@ router.delete('/:id', function(req, res) {
     if (err) res.json(404,err);
     group.remove();
     res.json(group);
-
   });
 });
 

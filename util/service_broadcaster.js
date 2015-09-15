@@ -5,9 +5,13 @@ var network = require('../util/network');
 
 var broadcast_address = network.broadcast();
 var broadcast_port = config.broadcast_port;
-var service_info = {address: network.address(), port: process.argv[2], name: config.server_name};
 
-
+var service_info = {
+  address: network.address(),
+  port: process.argv[2],
+  name: config.server_name,
+  reenqueue_limit: config.reenqueue_limit
+};
 
 client.bind();
 

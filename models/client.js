@@ -51,9 +51,9 @@ clientSchema.pre('remove', function(next) {
     next));
 });
 
-clientSchema.methods.setReenqueued = function(status) {
+clientSchema.methods.setReenqueued = function(reason) {
   this.reenqueue_count++;
-  this.status = status;
+  this.status = reason;
   return this;
 }
 
@@ -81,6 +81,12 @@ clientSchema.methods.setCompleted = function() {
   return this;
 }
 
+clientSchema.methods.setCancelled = function() {
+  this.status = 'cancelled';
+  this.exit_time = Date.now();
+  return this;
+}
+
 clientSchema.methods.setReenqueueLimitReached = function() {
   this.status = 'reenqueue_limit';
   this.exit_time = Date.now();
@@ -88,14 +94,14 @@ clientSchema.methods.setReenqueueLimitReached = function() {
 }
 
 clientSchema.methods.hasReachedLimit = function() {
-  return this.reenqueue_count > config.max_reenqueue_count;
+  return this.reenqueue_count > config.reenqueue_limit;
 }
 
 clientSchema.methods.saveToHistory = function() {
   var ClientHistory = mongoose.model('ClientHistory', clientHistorySchema);
   var historical = new ClientHistory();
   historical.restore(this.backup());
-  historical.save();
+  historical.save(function(err) { console.log(err) });
   return historical;
 }
 

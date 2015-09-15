@@ -14,7 +14,6 @@ var paydeskSchema = mongoose.Schema.create({
 
 });
 
-
 paydeskSchema.pre('remove', function(next){
     this.model('Group').update({_id: this.group._id },
       {$pull: {paydesks: this._id}},
@@ -24,7 +23,7 @@ paydeskSchema.pre('remove', function(next){
 });
 
 paydeskSchema.methods.enqueueClient = function(client, callback) {
-  this.clients.current_client = client._id;
+  this.current_client = client._id;
 }
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);

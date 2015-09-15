@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 var debug = require('debug')('enq');
-var app = require('../app');
+show_viewer = true;
+app = require('../app');
 var exec = require('child_process').exec;
+var fork = require('child_process').fork;
 var cluster = require('cluster');
-var event_bus = require('../util/event_bus');
+var PaydeskBus = require('../util/paydesk_bus');
 
 app.set('port', 3232);
 	// if (cluster.isMaster) {
@@ -11,6 +13,8 @@ app.set('port', 3232);
 
 		var child = exec('node ./util/service_broadcaster.js '+ app.get('port'));
 		child.stdout.on('data', function(data) { console.log(data); });
+
+
 
 		// Count the machine's CPUs
 	 // 	var cpuCount = require('os').cpus().length;
@@ -22,18 +26,25 @@ app.set('port', 3232);
 
 	// Code to run if we're in a worker process
 	// } else {
+var server = app.listen(app.get('port'), function() {
+	console.log('Express server listening on port ' + server.address().port);
+});
 
-		var server = app.listen(app.get('port'), function() {
-			console.log('Express server listening on port ' + server.address().port);
-		});
+app.set('io',require('socket.io')(server));
 
-		app.set('io',require('socket.io')(server));
+app.get('io').on('connection', function(ws) {
+  PaydeskBus.on('client_response', function(res) {
+    ws.emit('client_response', res);
+  });
+});
 
-		app.get('io').on('connection', function(ws) {
-		  event_bus.on('client_response', function(res) {
-		    ws.emit('client_response', res);
-		  });
-		});
+// var viewer = { send: function() {} };
+
+// if (process.argv[2] == "--viewer") {
+// 	viewer = fork('./util/viewer.js');
+// }
+
+// app.set('viewer',  viewer )
 
 	// }
 

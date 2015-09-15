@@ -64,9 +64,9 @@ router.get('/:id/clients/next', function(req, res) {
 	    if (!next_client) { res.json({}); return; };
 
       paydesk.group.removeClient(next_client);
+      paydesk.group.save();
 
-      ClientCaller.Call(paydesk, next_client);
-
+      ClientCaller(next_client, paydesk).Call();
       res.json(next_client);
 
     });

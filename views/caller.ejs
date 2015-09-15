@@ -38,18 +38,18 @@
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="current_client.enqueue_time"></h4>
+        <h4 ng-bind="formatTimestamp(current_client.enqueue_time)"></h4>
     </div>
     <div class="col-md-3">
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="called_client.enqueue_time"></h4>
+        <h4 ng-bind="formatTimestamp(called_client.enqueue_time)"></h4>
     </div>
   </div>
 
   <div class="row" style="text-align: center;">
-    <a href="#"  class="btn btn-primary" ng-click="callNext()">Próximo</a>
+    <a href="#"  id="call_button" class="btn btn-primary" ng-click="callNext()">Próximo</a>
   </div>
 
 </div>
@@ -60,25 +60,23 @@
   var socket = io('http://localhost:3232');
 
   socket.on('client_response', function (data) {
-    console.log(data.response);
+
+    if (data.paydesk_number != <%= paydesk.number %>) return;
+    console.log(data);
      switch (data.response) {
 
         case 'confirmed':
-        break;
-
-        case 'more_time':
-        break;
-
-        case 'response_timeout':
-
-        break;
-
-        case 'queue_limit_reached':
+          $("#call_button").removeAttr("disabled");
         break;
 
         case 'error':
         break;
+
+        default:
+          $("#call_button").removeAttr("disabled");
+        break;
      }
+
   });
 
   var app = angular.module('Caller', []);
@@ -95,10 +93,18 @@
       }
 
       $scope.callNext = function() {
+        //if ($("#call_button").attr("disabled")) return;
+        $("#call_button").attr("disabled","disabled");
         $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
           $scope.current_client = $scope.called_client;
           $scope.called_client = next_client;
         });
+      }
+
+      $scope.formatTimestamp = function(timestamp) {
+
+        var date = new Date(timestamp);
+        return timestamp == undefined ? '' : date.getHours()+':'+date.getMinutes();
       }
 
   });

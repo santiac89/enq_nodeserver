@@ -17,14 +17,14 @@ Array.prototype.last = function() {
 
   mongoose.Model.prototype.backup = function() {
     var obj = {};
-    for (key in this.schema) {
+    for (key in this.schema.paths) {
       obj[key] = this[key];
     }
     return obj;
   }
 
   mongoose.Model.prototype.restore = function(obj) {
-    for (key in this.schema) {
+    for (key in this.schema.paths) {
       this[key] = obj[key];
     }
   }

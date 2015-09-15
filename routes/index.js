@@ -2,8 +2,11 @@ var express = require('express');
 var router = express.Router();
 var Paydesk = require('../models/paydesk');
 var Group = require('../models/group');
-
+var Client = require('../models/client');
 /* GET home page. */
+
+
+
 router.get('/admin', function(req, res) {
   res.render('adminangular');
 });
@@ -23,7 +26,7 @@ router.get('/admin/paydesks', function(req, res) {
 });
 
 router.get('/caller', function(req, res) {
-  Paydesk.findOne({number: 15}).populate('group').exec(function(err,paydesk) {
+  Paydesk.findOne({number: 10}).populate('group').exec(function(err,paydesk) {
     res.render('caller',{paydesk: paydesk});
   });
 });

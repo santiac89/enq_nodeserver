@@ -1,11 +1,10 @@
 var express = require('express');
-var app = express();
+app = express();
 var path = require('path');
 var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
 /*
   **** THIRD-PARTY INCLUDES
 */
@@ -21,6 +20,7 @@ var transaction_logger = require('./util/transaction_logger');
 var routes = require('./routes/index');
 var groups = require('./routes/groups');
 var paydesks = require('./routes/paydesks');
+
 
 /*
  **** THIRD-PARTY CONFIGURATIONS ****
@@ -88,5 +88,6 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
+
 
 module.exports = app;
