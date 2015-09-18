@@ -76,7 +76,7 @@ router.post('/:id/clients', function(req, res) {
               res.json(500,err);
           }
 
-          res.json({estimated: 0, number: client.number});
+          res.json({estimated_time: 0, client_number: client.number, client_id: client._id });
 
         });
 

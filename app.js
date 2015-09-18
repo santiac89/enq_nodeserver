@@ -20,6 +20,7 @@ var transaction_logger = require('./util/transaction_logger');
 var routes = require('./routes/index');
 var groups = require('./routes/groups');
 var paydesks = require('./routes/paydesks');
+var clients = require('./routes/clients');
 
 
 /*
@@ -50,6 +51,7 @@ app.use(express.static(path.join(__dirname, 'public')));
  ***** ROUTES *******
 */
 app.use('/', routes);
+app.use('/clients', clients);
 app.use('/groups', groups);
 app.use('/paydesks', paydesks);
 

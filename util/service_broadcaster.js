@@ -10,7 +10,8 @@ var service_info = {
   address: network.address(),
   port: process.argv[2],
   name: config.server_name,
-  reenqueue_limit: config.reenqueue_limit
+  reenqueue_limit: config.reenqueue_limit,
+  call_timeout: config.call_timeout
 };
 
 client.bind();

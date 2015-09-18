@@ -16,8 +16,7 @@ var ClientCaller = function(client, paydesk){
     this.client.save();
 
     socket.write(JSON.stringify({
-      paydesk: this.paydesk.number,
-      call_timeout: config.call_timeout,
+      paydesk_number: this.paydesk.number,
       reenqueue_count: this.client.reenqueue_count
     }) + '\n');
 
@@ -26,7 +25,7 @@ var ClientCaller = function(client, paydesk){
   };
 
   this.OnSocketData = function(socket, response) {
-
+    console.log("DATA");
     socket.end();
 
     if (response == "confirm") {
@@ -40,7 +39,7 @@ var ClientCaller = function(client, paydesk){
     } else if (response == "cancel") {
 
       this.client.setCancelled();
-      this.client.removeAndLog();
+      this.client.remove();
       PaydeskBus.send(this.paydesk.number, 'cancelled');
 
     } else {
@@ -49,7 +48,7 @@ var ClientCaller = function(client, paydesk){
 
       if (this.client.hasReachedLimit()) {
 
-        this.client.removeAndLog();
+        this.client.remove();
         PaydeskBus.send(this.paydesk.number, 'queue_limit_reached');
 
       } else {
@@ -64,13 +63,13 @@ var ClientCaller = function(client, paydesk){
   };
 
   this.OnSocketTimeout = function(socket) {
-
+console.log("TIMEOUT");
     socket.end();
     this.client.setReenqueued("server_triggered_timeout");
 
     if (this.client.hasReachedLimit()) {
 
-      this.client.removeAndLog();
+      this.client.remove();
       PaydeskBus.send(this.paydesk.number, 'queue_limit_reached');
 
     } else {
@@ -85,12 +84,16 @@ var ClientCaller = function(client, paydesk){
   };
 
   this.OnSocketError = function(socket, err) {
-
+    console.log("ERROR");
     this.client.setErrored(err);
-    this.client.removeAndLog();
+    this.client.remove();
     PaydeskBus.send(this.paydesk.number, 'error');
 
   };
+
+  this.OnSocketClose = function(socket, had_error) {
+    console.log("CLOSE");
+  }
 
   this.Call = function() {
 
@@ -103,6 +106,7 @@ var ClientCaller = function(client, paydesk){
     client_tcp_conn.on('data', function(data) { _this.OnSocketData(this, data); });
     client_tcp_conn.on('error', function(err) { _this.OnSocketError(this , err); });
     client_tcp_conn.on('timeout', function() { _this.OnSocketTimeout(this); });
+    client_tcp_conn.on('close', function(had_error) { _this.OnSocketClose(this, had_error); });
 
   };
 

@@ -29,6 +29,8 @@ var clientHistorySchema = mongoose.Schema.create({
 */
 clientSchema.pre('remove', function(next) {
 
+    this.saveToHistory();
+
     this.model('Paydesk').update({
       current_client: this._id
     },
