@@ -1,11 +1,11 @@
 <% layout('layout') -%>
 <!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
 
-<div class="container-fluid" ng-app="Caller" ng-controller="callerController" >
+<div class="container-fluid" ng-app="Caller" ng-controller="callerController" ng-init="init()">
 
   <div class="row">
     <h1>Caja <%= paydesk.number %></h1>
-    <h3>Tipo de atención: <%= paydesk.group.name %></h3>
+    <h3>Tipo de atención: <%= group.name %></h3>
   </div>
 
 
@@ -48,6 +48,21 @@
     </div>
   </div>
 
+  <div class="row">
+    <div class="col-md-3">
+        <h4>Respuesta:</h4>
+    </div>
+    <div class="col-md-3">
+        <h4 ng-bind="current_client.response"></h4>
+    </div>
+    <div class="col-md-3">
+        <h4>Respuesta:</h4>
+    </div>
+    <div class="col-md-3">
+        <h4 ng-bind="called_client.response"></h4>
+    </div>
+  </div>
+
   <div class="row" style="text-align: center;">
     <a href="#"  id="call_button" class="btn btn-primary" ng-click="callNext()">Próximo</a>
   </div>
@@ -57,27 +72,7 @@
 <script type='text/javascript' src='/javascripts/socket.io.js'></script>
 <script>
 
-  var socket = io('http://localhost:3232');
 
-  socket.on('client_response', function (data) {
-
-    if (data.paydesk_number != <%= paydesk.number %>) return;
-    console.log(data);
-     switch (data.response) {
-
-        case 'confirmed':
-          $("#call_button").removeAttr("disabled");
-        break;
-
-        case 'error':
-        break;
-
-        default:
-          $("#call_button").removeAttr("disabled");
-        break;
-     }
-
-  });
 
   var app = angular.module('Caller', []);
   app.controller('callerController', function($scope,$http) {
@@ -85,6 +80,44 @@
       $scope.current_client = {};
       $scope.called_client = {};
       $scope.paydesk = {};
+      $scope.socket = null;
+
+      $scope.init = function() {
+
+        $scope.socket = io('http://localhost:3232');
+
+        $scope.socket.on('client_response', function (data) {
+
+          if (data.paydesk_number != <%= paydesk.number %>) return;
+
+          switch (data.message) {
+
+              case 'confirmed':
+                $scope.called_client.response = "Confirmado";
+              // Set TIMEOUT and COUNTER
+                $("#call_button").removeAttr("disabled");
+              break;
+
+              case 'error':
+                $scope.called_client.response = "ERROR";
+                $("#call_button").removeAttr("disabled");
+              break;
+
+              case 'cancelled':
+                $scope.called_client.response = "Cancelado";
+                $("#call_button").removeAttr("disabled");
+              break;
+
+              default:
+                $scope.called_client.response = "Reencolado";
+                $("#call_button").removeAttr("disabled");
+              break;
+           }
+
+           $scope.$apply();
+
+        });
+      }
 
       $scope.load = function(paydesk_id) {
         $http.get("/paydesks/<%= paydesk._id %>").success(function(paydesk) {
@@ -98,6 +131,7 @@
         $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
           $scope.current_client = $scope.called_client;
           $scope.called_client = next_client;
+          $scope.called_client.response = "Esperando respuesta...";
         });
       }
 
