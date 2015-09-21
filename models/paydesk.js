@@ -13,7 +13,11 @@ var paydeskSchema = mongoose.Schema.create({
 
 });
 
-paydeskSchema.methods.enqueueClient = function(client, callback) {
+paydeskSchema.methods.removeClient = function() {
+  return this.current_client.pop();
+}
+
+paydeskSchema.methods.addClient = function(client) {
   this.current_client.pop();
   this.current_client.push(client);
 }

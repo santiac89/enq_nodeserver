@@ -13,10 +13,10 @@ router.delete('/:id', function(req, res) {
       return;
     }
 
-    group.clients.id(req.params.id).remove();
+    var client = group.removeClient(req.params.id);
     group.save();
 
-    res.json({});
+    res.json(client);
 
   });
 

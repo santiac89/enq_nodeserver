@@ -6,6 +6,6 @@ config.mongo = {};
 config.mongo.address = "localhost";
 config.mongo.port = 27017;
 config.mongo.db = "enq";
-config.call_timeout = 120000;
+config.call_timeout = 60000;
 config.reenqueue_limit = 2;
 module.exports = config;

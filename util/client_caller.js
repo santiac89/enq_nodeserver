@@ -28,23 +28,20 @@ var ClientCaller = function(group, paydesk, client){
 
   this.OnSocketData = function(socket, response) {
 
-    console.log("DATA");
-
     socket.end();
 
-    this.RefreshReferences();
+    this.refreshReferences();
 
     if (response == "confirm") {
-
 
       this.client.remove();
       this.client.setConfirmed();
       this.client.saveToHistory();
 
-      this.paydesk.enqueueClient(this.client);
+      this.paydesk.addClient(this.client);
 
       this.group.save(function(err) {
-            console.log(err)
+        if (err) console.log(err)
       });
 
       PaydeskBus.send(this.paydesk.number, 'confirmed');
@@ -56,14 +53,14 @@ var ClientCaller = function(group, paydesk, client){
       this.client.saveToHistory();
 
       this.group.save(function(err) {
-            console.log(err)
-        });
+        if (err) console.log(err)
+      });
 
       PaydeskBus.send(this.paydesk.number, 'cancelled');
 
-    } else {
+    } else if (response == "extend") {
 
-      this.client.setReenqueued(response);
+      this.client.setReenqueued("extend");
 
       if (this.client.hasReachedLimit()) {
 
@@ -71,21 +68,20 @@ var ClientCaller = function(group, paydesk, client){
         this.client.saveToHistory();
 
         this.group.save(function(err) {
-            console.log(err)
+          if (err) console.log(err)
         });
 
         PaydeskBus.send(this.paydesk.number, 'queue_limit_reached');
 
       } else {
 
-        this.client.remove();
-        this.group.clients.push(this.client);
+        this.group.reenqueueClient(this.client._id);
 
         this.group.save(function(err) {
-            console.log(err)
+          if (err) console.log(err)
         });
 
-        PaydeskBus.send(this.paydesk.number, response);
+        PaydeskBus.send(this.paydesk.number, "extend");
 
       }
     }
@@ -93,13 +89,11 @@ var ClientCaller = function(group, paydesk, client){
 
   this.OnSocketTimeout = function(socket) {
 
-    console.log("TIMEOUT");
-
     socket.end();
 
-    this.RefreshReferences();
+    this.refreshReferences();
 
-    this.client.setReenqueued("server_triggered_timeout");
+    this.client.setReenqueued("response_timeout");
 
     if (this.client.hasReachedLimit()) {
 
@@ -107,30 +101,28 @@ var ClientCaller = function(group, paydesk, client){
         this.client.saveToHistory();
 
         this.group.save(function(err) {
-            console.log(err)
+          if (err) console.log(err)
         });
 
         PaydeskBus.send(this.paydesk.number, 'queue_limit_reached');
 
     } else {
 
-        this.client.remove();
-        this.group.clients.push(this.client);
+        this.group.reenqueueClient(this.client._id);
 
         this.group.save(function(err) {
-            console.log(err)
+          if (err) console.log(err)
         });
 
         PaydeskBus.send(this.paydesk.number, 'response_timeout');
 
     }
 
-
   };
 
   this.OnSocketError = function(socket, err) {
 
-    this.RefreshReferences();
+    this.refreshReferences();
 
     console.log(err)
 
@@ -162,7 +154,7 @@ var ClientCaller = function(group, paydesk, client){
 
   };
 
-  this.RefreshReferences = function() {
+  this.refreshReferences = function() {
     var _this = this;
     Group.findOne({ _id: this.group._id }).exec(function(err, group) {
       _this.group = group;

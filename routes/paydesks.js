@@ -3,8 +3,6 @@ var router = express.Router();
 var Group = require('../models/group');
 var ClientCaller = require('../util/client_caller');
 
-//var transaction_logger = require('../util/transaction_logger');
-
 router.get('/', function(req, res) {
 
   Group.find({},'_id name paydesks').exec(function(err, groups) {
@@ -38,10 +36,10 @@ router.delete('/:id', function(req, res) {
   Group.findByPaydesk(req.params.id).exec(function(err,group) {
     if (err) res.json(404,err);
 
-    paydesk = group.paydesks.id(req.params.id);
-    res.json(paydesk);
-    paydesk.remove();
+    paydesk = group.removePaydesk(req.params.id);
     group.save();
+
+    res.json(paydesk);
 
   });
 });
@@ -50,28 +48,33 @@ router.get('/:id/clients/next', function(req, res) {
 
   Group.findByPaydesk(req.params.id).exec(function(err,group) {
 
-    if (!group) res.json(404,err);
+    if (!group) {
+      res.json(404,err);
+      return;
+    }
 
-    paydesk = group.paydesks.id(req.params.id);
+    paydesk = group.getPaydesk(req.params.id);
 
-    var current_client = paydesk.current_client.pop();
+    var current_client = paydesk.removeClient();
 
     if (current_client) {
+
+      group.confirmed_clients++;
+      group.confirmed_times += Date.now() - current_client.confirmed_time;
+
       current_client.saveToHistory();
       group.save();
     }
 
-    var next_client = null;
+    var next_client = group.getNextClient();
 
-    for (i = group.clients.length - 1; i >= 0; i--) {
-      next_client = group.clients[i].status != 'called' ? group.clients[i] : null;
-    }
-
-    if (!next_client) { res.json(404, {}); return; };
-
-
+    if (!next_client) {
+      res.json(404, {});
+      return;
+    };
 
     ClientCaller(group, paydesk, next_client).Call();
+
     res.json(next_client);
 
 	});

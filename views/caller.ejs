@@ -3,9 +3,9 @@
 
 <div class="container-fluid" ng-app="Caller" ng-controller="callerController" ng-init="init()">
 
-  <div class="row">
-    <h1>Caja <%= paydesk.number %></h1>
-    <h3>Tipo de atención: <%= group.name %></h3>
+  <div class="row paydesk_header">
+    <h1>Caja  <span class="bold"><%= paydesk.number %></span></h1>
+    <h3>Tipo de atención: <span class="bold"><%= group.name %></span></h3>
   </div>
 
 
@@ -23,13 +23,13 @@
         <h4>Número:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="current_client.number"></h4>
+        <h4 class="bold" ng-bind="current_client.number"></h4>
     </div>
     <div class="col-md-3">
         <h4>Número:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="called_client.number"></h4>
+        <h4 class="bold" ng-bind="called_client.number"></h4>
     </div>
   </div>
 
@@ -38,13 +38,13 @@
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="formatTimestamp(current_client.enqueue_time)"></h4>
+        <h4 class="bold" ng-bind="formatTimestamp(current_client.enqueue_time)"></h4>
     </div>
     <div class="col-md-3">
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="formatTimestamp(called_client.enqueue_time)"></h4>
+        <h4 class="bold" ng-bind="formatTimestamp(called_client.enqueue_time)"></h4>
     </div>
   </div>
 
@@ -53,18 +53,18 @@
         <h4>Respuesta:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="current_client.response"></h4>
+        <h4 class="bold" ng-bind="current_client.response"></h4>
     </div>
     <div class="col-md-3">
         <h4>Respuesta:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="called_client.response"></h4>
+        <h4 class="bold" ng-bind="called_client.response"></h4>
     </div>
   </div>
 
   <div class="row" style="text-align: center;">
-    <a href="#"  id="call_button" class="btn btn-primary" ng-click="callNext()">Próximo</a>
+    <a href="#"  id="call_button" class="btn btn-success" ng-click="callNext()">Próximo</a>
   </div>
 
 </div>
@@ -127,11 +127,15 @@
 
       $scope.callNext = function() {
         //if ($("#call_button").attr("disabled")) return;
-        $("#call_button").attr("disabled","disabled");
+
         $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
+
+          $("#call_button").attr("disabled","disabled");
           $scope.current_client = $scope.called_client;
           $scope.called_client = next_client;
           $scope.called_client.response = "Esperando respuesta...";
+        }).error(function() {
+            $scope.called_client.number = "No hay mas clientes.";
         });
       }
 

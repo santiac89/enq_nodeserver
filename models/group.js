@@ -8,29 +8,51 @@ var groupSchema = mongoose.Schema({
 
 	timeout: { type: Number, required: true , unique: false},
     name: { type: String, required: true , unique: true},
-    estimated: Number,
 	paydesks:  [paydeskSchema],
     clients: [clientSchema],
+    confirmed_clients:  { type: Number, default: 0 },
+    confirmed_times:  { type: Number, default: 0 }
 
 });
 
 
-groupSchema.methods.enqueueClient = function(client, callback) {
+groupSchema.methods.enqueueClient = function(client) {
 	this.clients.push(client);
     return this;
 };
 
-groupSchema.methods.reenqueueClient = function(client, callback) {
-    this.removeClient(client);
+groupSchema.methods.reenqueueClient = function(client_id) {
+    var client = this.removeClient(client_id);
     this.enqueueClient(client);
     return this;
 };
 
-groupSchema.methods.removeClient = function(client, callback) {
-    var i = this.clients.indexOf(client);
-    return this.clients.splice(i,1);
+groupSchema.methods.removeClient = function(client_id) {
+    var client = this.clients.id(client_id);
+    client.remove();
+    return client;
 };
 
+groupSchema.methods.removePaydesk = function(paydesk_id) {
+  var paydesk = this.paydesks.id(paydesk_id);
+  paydesk.remove();
+  return paydesk;
+};
+
+groupSchema.methods.getPaydesk = function(paydesk_id) {
+  return this.paydesks.id(paydesk_id);
+};
+
+groupSchema.methods.getNextClient = function() {
+
+    var next_client = null;
+
+    for (i = this.clients.length - 1; i >= 0; i--) {
+      next_client = this.clients[i].status != 'called' ? this.clients[i] : null;
+    }
+
+    return next_client;
+};
 
 groupSchema.plugin(uniqueValidator);
 

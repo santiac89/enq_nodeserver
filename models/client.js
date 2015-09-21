@@ -7,14 +7,14 @@ var clientSchema = mongoose.Schema.create({
   hmac:  { type: String, required: true , unique: true},
   ip:  { type: String, required: true , unique: true},
   reenqueue_count: { type: Number, default: 0 },
-  enqueue_time: Number,
-  called_time: Number,
-  exit_time: Number,
+  enqueue_time: { type: Number, default: 0 },
+  called_time: { type: Number, default: 0 },
+  cancelled_time: { type: Number, default: 0 },
+  errored_time: { type: Number, default: 0 },
+  confirmed_time: { type: Number, default: 0 },
   status: { type: String, default: "idle" },
   called_by: Number
 });
-
-
 
 clientSchema.methods.setReenqueued = function(reason) {
   this.reenqueue_count++;
@@ -24,7 +24,7 @@ clientSchema.methods.setReenqueued = function(reason) {
 
 clientSchema.methods.setConfirmed = function() {
   this.status = "confirmed";
-  this.exit_time = Date.now();
+  this.confirmed_time = Date.now();
   return this;
 }
 
@@ -37,26 +37,14 @@ clientSchema.methods.setCalledBy = function(paydesk_number) {
 
 clientSchema.methods.setErrored = function(err) {
   this.status = 'errored';
-  this.exit_time = Date.now();
+  this.errored_time = Date.now();
   this._errors = JSON.stringify(err);
-  return this;
-}
-
-clientSchema.methods.setCompleted = function() {
-  this.status = 'completed';
-  this.exit_time = Date.now();
   return this;
 }
 
 clientSchema.methods.setCancelled = function() {
   this.status = 'cancelled';
-  this.exit_time = Date.now();
-  return this;
-}
-
-clientSchema.methods.setReenqueueLimitReached = function() {
-  this.status = 'reenqueue_limit';
-  this.exit_time = Date.now();
+  this.cancelled_time = Date.now();
   return this;
 }
 

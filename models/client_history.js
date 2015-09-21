@@ -8,7 +8,9 @@ var clientHistorySchema = mongoose.Schema.create({
   reenqueue_count: { type: Number },
   enqueue_time: Number,
   called_time: Number,
-  exit_time: Number,
+  cancelled_time: Number,
+  errored_time: Number,
+  confirmed_time: Number,
   status: { type: String },
   called_by: Number,
   _errors: String
