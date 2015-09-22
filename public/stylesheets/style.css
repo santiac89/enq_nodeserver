@@ -14,6 +14,7 @@
     height: 100px;
     background: #50be6c;
     color: white;
+    font-size: 45px;
 }
 
 .header img {
@@ -34,7 +35,7 @@ div.content {
 
 body {
   padding: 0px;
-  font: 50px "Comfortaa", Helvetica, Arial, sans-serif;
+  font-family: "Comfortaa", Helvetica, Arial, sans-serif;
 
 }
 

@@ -66,7 +66,6 @@ Group.findByPaydeskNumber = function(number) {
     return this.findOne({ paydesks: { $elemMatch: { number: number } }});
 };
 
-
 Group.getAllPaydesks = function() {
 
     this.find({},'paydesks').exec(function(err, groups) {

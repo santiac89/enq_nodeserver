@@ -1,0 +1,51 @@
+<% layout('./layouts/layout') -%>
+<!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
+
+<% if (user.role == "admin") { %>
+<div class="container-fluid">
+  <div class="row">
+    <div class="md-col-12">
+      <a href="/admin/groups">Administrar Grupos</a> >
+    </div>
+  </div>
+  <div class="row">
+    <div class="md-col-12">
+      <a href="/admin/paydesks">Administrar Cajas</a> >
+    </div>
+  </div>
+</div>
+<% } else if (user.role == "paydesk") { %>
+
+  <div class="container-fluid" ng-app="Admin" ng-controller="paydesksLoginController" ng-init="refresh()">
+    <div class="list-group">
+      <a ng-repeat="paydesk in paydesks" href="/caller/{{paydesk._id}}">
+        <button  type="button" class="list-group-item">
+          Caja: {{paydesk.number}} - Tipo de atención: {{paydesk.group_name}}
+        </button>
+      </a>
+    </div>
+  </div>
+  <script type="text/javascript">
+    var app = angular.module('Admin', []);
+    app.controller('paydesksLoginController', function($scope,$http) {
+
+        $scope.paydesk = {};
+
+        $scope.refresh = function() {
+          $http.get("/paydesks").success(function(paydesks) {
+            $scope.paydesks = paydesks;
+          });
+        }
+    })
+  </script>
+
+<% } %>
+<style type="text/css">
+
+  .row {
+    font-size: 50px;
+    text-align: center;
+  }
+
+</style>
+
