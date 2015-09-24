@@ -5,8 +5,7 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-var session = require('express-session')
-;
+var session = require('express-session');
 /*
   **** THIRD-PARTY INCLUDES
 */
@@ -27,11 +26,6 @@ var admins = require('./routes/admins');
 var groups = require('./routes/groups');
 var paydesks = require('./routes/paydesks');
 var clients = require('./routes/clients');
-
-/*
- **** THIRD-PARTY CONFIGURATIONS ****
-*/
-mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 
 /*
  **** VIEWS CONFIGURATION ****

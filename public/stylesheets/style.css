@@ -25,6 +25,12 @@ div.content {
   padding: 50px;
 }
 
+div.row.row-underline {
+   border-bottom: 3px solid #50be6c;
+   margin-bottom: 20px;
+
+}
+
 .paydesk_header {
   border-bottom: 2px solid #50be6c;
 }

@@ -54,6 +54,17 @@ groupSchema.methods.getNextClient = function() {
     return next_client;
 };
 
+groupSchema.methods.clientIsUnique = function(client) {
+
+  for (i=0; i < this.clients.length; i++) {
+    if (this.clients[i].ip == client.ip || this.clients[i].hmac == client.hmac ) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 groupSchema.plugin(uniqueValidator);
 
 var Group = mongoose.model('Group', groupSchema);

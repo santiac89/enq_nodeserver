@@ -81,10 +81,16 @@
       $scope.called_client = {};
       $scope.paydesk = {};
       $scope.socket = null;
+      $scope.interval_id = 0;
 
       $scope.init = function() {
 
         $scope.socket = io('http://localhost:3232');
+
+        $scope.socket.on('connect', function() {
+          console.log(0)
+           $scope.socket.emit('paydesk_connection', { paydesk_id: "<%= paydesk._id %>" });
+        });
 
         $scope.socket.on('client_response', function (data) {
 
@@ -114,6 +120,7 @@
               break;
            }
 
+           clearInterval($scope.interval_id);
            $scope.$apply();
 
         });
@@ -133,7 +140,15 @@
           $("#call_button").attr("disabled","disabled");
           $scope.current_client = $scope.called_client;
           $scope.called_client = next_client;
-          $scope.called_client.response = "Esperando respuesta...";
+
+          var count =  <%= call_timeout / 1000 %>;
+          $scope.interval_id = setInterval(function() {
+            $scope.called_client.response = "Esperando respuesta... " + count--;
+            $scope.$apply();
+          }, 1000);
+
+          setTimeout(function() { clearInterval($scope.interval_id); }, <%= call_timeout %>);
+
         }).error(function() {
             $scope.called_client.number = "No hay mas clientes.";
         });

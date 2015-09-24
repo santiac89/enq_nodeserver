@@ -12,6 +12,8 @@ router.get('/', function(req, res) {
     for (i=0; i < groups.length; i++) {
       for (o=0; o < groups[i].paydesks.length; o++) {
 
+        if (groups[i].paydesks[o].active) continue;
+
         var paydesk = {};
 
         paydesk._id =  groups[i].paydesks[o]._id;
@@ -64,6 +66,7 @@ router.get('/:id/clients/next', function(req, res) {
 
       current_client.saveToHistory();
       group.save();
+
     }
 
     var next_client = group.getNextClient();

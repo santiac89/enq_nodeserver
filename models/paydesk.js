@@ -9,7 +9,7 @@ var paydeskSchema = mongoose.Schema.create({
   number: { type: Number, required: true , unique: true},
   current_client:  [clientSchema],
   estimated: Number,
-  active: Boolean,
+  active: Boolean
 
 });
 

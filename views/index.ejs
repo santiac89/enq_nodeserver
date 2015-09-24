@@ -1,22 +1,21 @@
 <% layout('./layouts/layout') -%>
 <!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
-
-<% if (user.role == "admin") { %>
-<div class="container-fluid">
-  <div class="row">
-    <div class="md-col-12">
-      <a href="/admin/groups">Administrar Grupos</a> >
-    </div>
-  </div>
-  <div class="row">
-    <div class="md-col-12">
-      <a href="/admin/paydesks">Administrar Cajas</a> >
-    </div>
-  </div>
+<div class="container-fluid" ng-app="Index" ng-controller="indexController" ng-init="refresh()">
+<div class="row row-underline">
+<div class="row" style="float: left;">
+<h1>
+  Selección de caja
+</h1>
 </div>
-<% } else if (user.role == "paydesk") { %>
+<% if (user.role == "admin") { %>
+<div class="row" style="float: right;">
+      <a class="btn btn-success" href="/admin/groups">Administrar Grupos</a>
+      <a class="btn btn-success" href="/admin/paydesks">Administrar Cajas</a>
+      </div>
+<% } %>
+  </div>
 
-  <div class="container-fluid" ng-app="Admin" ng-controller="paydesksLoginController" ng-init="refresh()">
+
     <div class="list-group">
       <a ng-repeat="paydesk in paydesks" href="/caller/{{paydesk._id}}">
         <button  type="button" class="list-group-item">
@@ -26,8 +25,8 @@
     </div>
   </div>
   <script type="text/javascript">
-    var app = angular.module('Admin', []);
-    app.controller('paydesksLoginController', function($scope,$http) {
+    var app = angular.module('Index', []);
+    app.controller('indexController', function($scope,$http) {
 
         $scope.paydesk = {};
 
@@ -39,7 +38,6 @@
     })
   </script>
 
-<% } %>
 <style type="text/css">
 
   .row {

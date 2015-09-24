@@ -4,7 +4,7 @@ var config = require('../config');
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 var Client = require('../models/client');
 var Paydesk = require('../models/paydesk');
-var Group = require('../models/group');
+var Group = require('mongoose').model('Group');
 
 process.on('message', function(data) {
 
