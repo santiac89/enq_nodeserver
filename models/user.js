@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var config = require('../config');
 var passportLocalMongoose = require('passport-local-mongoose');
 
-var userSchema = mongoose.Schema.create({
+var userSchema = mongoose.Schema({
   role: String
 });
 
