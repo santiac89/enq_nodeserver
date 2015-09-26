@@ -3,7 +3,7 @@ var clientSchema = require('./client');
 var Schema = mongoose.Schema;
 
 
-var paydeskSchema = mongoose.Schema.create({
+var paydeskSchema = mongoose.Schema({
 
   number: { type: Number, required: true , unique: true},
   current_client:  [clientSchema],

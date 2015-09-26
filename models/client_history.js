@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 var config = require('../config');
 
-var clientHistorySchema = mongoose.Schema.create({
+var clientHistorySchema = mongoose.Schema({
   number:  { type: Number, required: false },
   hmac:  { type: String, required: true },
   ip:  { type: String, required: true },

@@ -2,7 +2,6 @@ var mongoose = require('mongoose');
 
 
 mongoose.Types.DocumentArray.prototype.last = function() {
-
     return this[this.length];
 }
 
@@ -12,31 +11,28 @@ mongoose.Types.DocumentArray.prototype.removeObj = function(obj) {
   return obj;
 }
 
-mongoose.Schema.prototype.setSchema = function(schema) {
-  this.schema = schema;
-}
+// mongoose.Schema.prototype.setSchema = function(schema) {
+//   this.schema = schema;
+// }
 
 mongoose.Document.prototype.backup = function() {
   var obj = {};
   for (key in this.schema.paths) {
-    obj[key] = this[key];
-    console.log(key);
+    if (key != '_id' && key != '__v') obj[key] = this[key];
   }
-
   return obj;
 }
 
 mongoose.Model.prototype.restore = function(obj) {
   for (key in this.schema.paths) {
-    this[key] = obj[key];
+    if (key != '_id' && key != '__v') this[key] = obj[key];
   }
-  console.log(this);
 }
 
-mongoose.Schema.create = function(schema) {
-  var newSchema = mongoose.Schema(schema);
-  newSchema.setSchema(schema);
-  return newSchema;
-}
+// mongoose.Schema.create = function(schema) {
+//   var newSchema = mongoose.Schema(schema);
+//   newSchema.setSchema(schema);
+//   return newSchema;
+// }
 
   module.exports = function() {};

@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var config = require('../config');
 var ClientHistory = require('./client_history');
 
-var clientSchema = mongoose.Schema.create({
+var clientSchema = mongoose.Schema({
   number:  { type: Number, required: false , unique: true},
   hmac:  { type: String, required: true , unique: true},
   ip:  { type: String, required: true , unique: true},
