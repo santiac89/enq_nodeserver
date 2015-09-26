@@ -20,7 +20,9 @@ mongoose.Document.prototype.backup = function() {
   var obj = {};
   for (key in this.schema.paths) {
     obj[key] = this[key];
+    console.log(key);
   }
+
   return obj;
 }
 
@@ -28,6 +30,7 @@ mongoose.Model.prototype.restore = function(obj) {
   for (key in this.schema.paths) {
     this[key] = obj[key];
   }
+  console.log(this);
 }
 
 mongoose.Schema.create = function(schema) {
