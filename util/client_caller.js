@@ -141,12 +141,13 @@ var ClientCaller = function(group, paydesk, client) {
     console.log("CLOSE");
   }
 
-  this.Call = () => {
+  this.Call = (res) => {
 
     var self = this;
 
     var client_tcp_conn = net.createConnection(3131, this.client.ip, function() {
       self.OnSocketConnection(this);
+      res.json(this.client);
     });
 
     client_tcp_conn.on('data', function(data) { self.OnSocketData(this, data); });

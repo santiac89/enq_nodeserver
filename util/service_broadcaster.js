@@ -23,7 +23,6 @@ client.on("listening", function () {
 
   console.log('Sending server info ' + message + ' to port ' + broadcast_port );
 
-
   setInterval(function() {
   	client.send(message, 0, message.length, broadcast_port, broadcast_address);
 
