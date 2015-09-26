@@ -77,7 +77,7 @@ router.get('/:id/clients/next', function(req, res) {
     };
 
 
-    ClientCaller(group, paydesk, next_client).Call();
+    ClientCaller(group, paydesk, next_client).Call(res);
 
 
 
