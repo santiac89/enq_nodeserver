@@ -77,9 +77,9 @@ router.get('/:id/clients/next', function(req, res) {
     };
 
 
-    ClientCaller(group, paydesk, next_client).Call(res);
+    ClientCaller(group, paydesk, next_client).Call();
 
-
+    res.json(next_client);
 
 	});
 });
