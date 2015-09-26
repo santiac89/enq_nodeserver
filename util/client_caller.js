@@ -3,7 +3,7 @@ var config = require('../config');
 var net = require('net');
 var Group = require('../models/group');
 
-var ClientCaller = function(group, paydesk, client){
+var ClientCaller = function(group, paydesk, client) {
 
    if (!(this instanceof ClientCaller))
     return new ClientCaller(group, paydesk, client);
@@ -12,21 +12,23 @@ var ClientCaller = function(group, paydesk, client){
   this.paydesk = paydesk;
   this.group = group;
 
-  this.OnSocketConnection = function(socket) {
+  this.OnSocketConnection = (socket) => {
 
     this.client.setCalledBy(this.paydesk.number);
     this.group.save();
 
-    socket.write(JSON.stringify({
+    var call_message = JSON.stringify({
       paydesk_number: this.paydesk.number,
       reenqueue_count: this.client.reenqueue_count
-    }) + '\n');
+    }) + '\n';
 
-    socket.setTimeout(config.call_timeout);
+    socket.write(call_message, 'UTF-8', function(err) {
+      socket.setTimeout(config.call_timeout);
+    });
 
   };
 
-  this.OnSocketData = function(socket, response) {
+  this.OnSocketData = (socket, response) => {
 
     socket.end();
 
@@ -40,7 +42,7 @@ var ClientCaller = function(group, paydesk, client){
 
       this.paydesk.addClient(this.client);
 
-      this.group.save(function(err) {
+      this.group.save((err) => {
         if (err) console.log(err)
       });
 
@@ -52,7 +54,7 @@ var ClientCaller = function(group, paydesk, client){
       this.client.setCancelled();
       this.client.saveToHistory();
 
-      this.group.save(function(err) {
+      this.group.save((err) => {
         if (err) console.log(err)
       });
 
@@ -67,7 +69,7 @@ var ClientCaller = function(group, paydesk, client){
         this.client.remove();
         this.client.saveToHistory();
 
-        this.group.save(function(err) {
+        this.group.save((err) => {
           if (err) console.log(err)
         });
 
@@ -77,7 +79,7 @@ var ClientCaller = function(group, paydesk, client){
 
         this.group.reenqueueClient(this.client._id);
 
-        this.group.save(function(err) {
+        this.group.save((err) => {
           if (err) console.log(err)
         });
 
@@ -87,7 +89,7 @@ var ClientCaller = function(group, paydesk, client){
     }
   };
 
-  this.OnSocketTimeout = function(socket) {
+  this.OnSocketTimeout = (socket) => {
 
     socket.end();
 
@@ -100,7 +102,7 @@ var ClientCaller = function(group, paydesk, client){
         this.client.remove();
         this.client.saveToHistory();
 
-        this.group.save(function(err) {
+        this.group.save((err) => {
           if (err) console.log(err)
         });
 
@@ -110,7 +112,7 @@ var ClientCaller = function(group, paydesk, client){
 
         this.group.reenqueueClient(this.client._id);
 
-        this.group.save(function(err) {
+        this.group.save((err) => {
           if (err) console.log(err)
         });
 
@@ -120,7 +122,7 @@ var ClientCaller = function(group, paydesk, client){
 
   };
 
-  this.OnSocketError = function(socket, err) {
+  this.OnSocketError = (socket, err) => {
 
     this.refreshReferences();
 
@@ -139,27 +141,26 @@ var ClientCaller = function(group, paydesk, client){
     console.log("CLOSE");
   }
 
-  this.Call = function() {
+  this.Call = () => {
 
-    var _this = this;
+    var self = this;
 
     var client_tcp_conn = net.createConnection(3131, this.client.ip, function() {
-      _this.OnSocketConnection(this);
+      self.OnSocketConnection(this);
     });
 
-    client_tcp_conn.on('data', function(data) { _this.OnSocketData(this, data); });
-    client_tcp_conn.on('error', function(err) { _this.OnSocketError(this , err); });
-    client_tcp_conn.on('timeout', function() { _this.OnSocketTimeout(this); });
-    client_tcp_conn.on('close', function(had_error) { _this.OnSocketClose(this, had_error); });
+    client_tcp_conn.on('data', function(data) { self.OnSocketData(this, data); });
+    client_tcp_conn.on('error', function(err) { self.OnSocketError(this , err); });
+    client_tcp_conn.on('timeout', function() { self.OnSocketTimeout(this); });
+    client_tcp_conn.on('close', function(had_error) { self.OnSocketClose(this, had_error); });
 
   };
 
-  this.refreshReferences = function() {
-    var _this = this;
-    Group.findOne({ _id: this.group._id }).exec(function(err, group) {
-      _this.group = group;
-      _this.paydesk = group.paydesks.id(_this.paydesk._id);
-      _this.client = group.clients.id(_this.client._id);
+  this.refreshReferences = () => {
+    Group.findOne({ _id: this.group._id }).exec((err, group) => {
+      this.group = group;
+      this.paydesk = group.paydesks.id(this.paydesk._id);
+      this.client = group.clients.id(this.client._id);
     });
   };
 
