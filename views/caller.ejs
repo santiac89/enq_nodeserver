@@ -100,7 +100,7 @@
 
               case 'confirmed':
                 $scope.called_client.response = "Confirmado";
-              // Set TIMEOUT and COUNTER
+
                 $("#call_button").removeAttr("disabled");
               break;
 
@@ -133,7 +133,6 @@
       }
 
       $scope.callNext = function() {
-        //if ($("#call_button").attr("disabled")) return;
 
         $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
 
@@ -145,9 +144,13 @@
           $scope.interval_id = setInterval(function() {
             $scope.called_client.response = "Esperando respuesta... " + count--;
             $scope.$apply();
+
+            if (count == 0) {
+              clearInterval($scope.interval_id);
+            }
+
           }, 1000);
 
-          setTimeout(function() { clearInterval($scope.interval_id); }, <%= call_timeout %>);
 
         }).error(function() {
             $scope.called_client.number = "No hay mas clientes.";
