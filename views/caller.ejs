@@ -85,7 +85,7 @@
 
       $scope.init = function() {
 
-        $scope.socket = io('http://localhost:3232');
+        $scope.socket = io('http://'+window.location.host);
 
         $scope.socket.on('connect', function() {
           console.log(0)
