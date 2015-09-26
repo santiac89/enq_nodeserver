@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 var debug = require('debug')('enq');
-// show_viewer = true;
 app = require('../app');
 var exec = require('child_process').exec;
-// var fork = require('child_process').fork;
-// var cluster = require('cluster');
 var PaydeskBus = require('../util/paydesk_bus');
 var mongoose = require('mongoose');///
 var Io = require('socket.io');
 var config = require('../config');
 var Group = require('../models/group');
+require('ofe').call();
 
 app.set('port', 3232);
 	// if (cluster.isMaster) {
