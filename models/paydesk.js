@@ -1,4 +1,3 @@
-var event_bus = require('../util/event_bus');
 var mongoose = require('mongoose')
 var clientSchema = require('./client');
 var Schema = mongoose.Schema;
