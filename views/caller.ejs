@@ -81,15 +81,15 @@
       $scope.called_client = {};
       $scope.paydesk = {};
       $scope.socket = null;
-      $scope.interval_id = 0;
+      $scope.call_interval_id = 0;
+      $scope.client_interval_id = 0;
 
       $scope.init = function() {
 
         $scope.socket = io('http://'+window.location.host);
 
         $scope.socket.on('connect', function() {
-          console.log(0)
-           $scope.socket.emit('paydesk_connection', { paydesk_id: "<%= paydesk._id %>" });
+          $scope.socket.emit('paydesk_connection', { paydesk_id: "<%= paydesk._id %>" });
         });
 
         $scope.socket.on('client_response', function (data) {
@@ -100,8 +100,9 @@
 
               case 'confirmed':
                 $scope.called_client.response = "Confirmado";
-
-                $("#call_button").removeAttr("disabled");
+                $scope.startClientConfirmedTimeout(function() {
+                  $("#call_button").removeAttr("disabled");
+                });
               break;
 
               case 'error':
@@ -139,17 +140,7 @@
           $("#call_button").attr("disabled","disabled");
           $scope.current_client = $scope.called_client;
           $scope.called_client = next_client;
-
-          var count =  <%= call_timeout / 1000 %>;
-          $scope.interval_id = setInterval(function() {
-            $scope.called_client.response = "Esperando respuesta... " + count--;
-            $scope.$apply();
-
-            if (count == 0) {
-              clearInterval($scope.interval_id);
-            }
-
-          }, 1000);
+          $scope.startCallResponseTimeout();
 
 
         }).error(function() {
@@ -158,9 +149,35 @@
       }
 
       $scope.formatTimestamp = function(timestamp) {
-
         var date = new Date(timestamp);
         return timestamp == undefined ? '' : date.getHours()+':'+date.getMinutes();
+      }
+
+      $scope.startCallResponseTimeout = function() {
+        var count =  <%= call_timeout %>;
+          $scope.call_interval_id = setInterval(function() {
+            $scope.called_client.response = "Esperando respuesta... " + count--;
+            $scope.$apply();
+
+            if (count == 0) {
+              clearInterval($scope.call_interval_id);
+            }
+
+          }, 1000);
+      }
+
+      $scope.startClientConfirmedTimeout = function(callback) {
+        var count =  <%= group.timeout %>;
+          $scope.client_interval_id = setInterval(function() {
+            $scope.called_client.response = "Esperando por el cliente... " + count--;
+            $scope.$apply();
+
+            if (count == 0) {
+              clearInterval($scope.client_interval_id);
+              callback();
+            }
+
+          }, 1000);
       }
 
   });
