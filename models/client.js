@@ -1,56 +1,19 @@
 var mongoose = require('mongoose');
 var config = require('../config');
+var ClientHistory = require('./client_history');
 
-var clientSchema = mongoose.Schema.create({
+var clientSchema = mongoose.Schema({
   number:  { type: Number, required: false , unique: true},
   hmac:  { type: String, required: true , unique: true},
   ip:  { type: String, required: true , unique: true},
   reenqueue_count: { type: Number, default: 0 },
-  enqueue_time: Number,
-  called_time: Number,
-  exit_time: Number,
+  enqueue_time: { type: Number, default: 0 },
+  called_time: { type: Number, default: 0 },
+  cancelled_time: { type: Number, default: 0 },
+  errored_time: { type: Number, default: 0 },
+  confirmed_time: { type: Number, default: 0 },
   status: { type: String, default: "idle" },
-});
-
-var clientHistorySchema = mongoose.Schema.create({
-  number:  { type: Number, required: false },
-  hmac:  { type: String, required: true },
-  ip:  { type: String, required: true },
-  reenqueue_count: { type: Number },
-  enqueue_time: Number,
-  called_time: Number,
-  exit_time: Number,
-  status: { type: String },
-  _errors: String
-});
-
-/*
-  If client removed, remove it also from paydesks and groups
-*/
-clientSchema.pre('remove', function(next) {
-
-    this.saveToHistory();
-
-    this.model('Paydesk').update({
-      current_client: this._id
-    },
-    {
-      current_client: null
-    },
-    {
-      multi: true
-    },
-    this.model('Group').update({
-      clients: {
-        $in: [ this._id ]
-      }
-    },
-    { $pull:
-      {
-        clients: this._id
-      }
-    },
-    next));
+  called_by: Number
 });
 
 clientSchema.methods.setReenqueued = function(reason) {
@@ -61,37 +24,27 @@ clientSchema.methods.setReenqueued = function(reason) {
 
 clientSchema.methods.setConfirmed = function() {
   this.status = "confirmed";
+  this.confirmed_time = Date.now();
   return this;
 }
 
-clientSchema.methods.setCalled = function() {
+clientSchema.methods.setCalledBy = function(paydesk_number) {
   this.status = 'called';
+  this.called_by = paydesk_number;
   this.called_time = Date.now();
   return this;
 }
 
 clientSchema.methods.setErrored = function(err) {
   this.status = 'errored';
-  this.exit_time = Date.now();
+  this.errored_time = Date.now();
   this._errors = JSON.stringify(err);
-  return this;
-}
-
-clientSchema.methods.setCompleted = function() {
-  this.status = 'completed';
-  this.exit_time = Date.now();
   return this;
 }
 
 clientSchema.methods.setCancelled = function() {
   this.status = 'cancelled';
-  this.exit_time = Date.now();
-  return this;
-}
-
-clientSchema.methods.setReenqueueLimitReached = function() {
-  this.status = 'reenqueue_limit';
-  this.exit_time = Date.now();
+  this.cancelled_time = Date.now();
   return this;
 }
 
@@ -100,18 +53,10 @@ clientSchema.methods.hasReachedLimit = function() {
 }
 
 clientSchema.methods.saveToHistory = function() {
-  var ClientHistory = mongoose.model('ClientHistory', clientHistorySchema);
   var historical = new ClientHistory();
   historical.restore(this.backup());
-  historical.save(function(err) { console.log(err) });
+  historical.save();
   return historical;
 }
 
-clientSchema.methods.removeAndLog = function() {
-  this.saveToHistory();
-  this.remove();
-}
-
-var Client = mongoose.model('Client', clientSchema);
-
-module.exports = Client;
+module.exports = clientSchema;

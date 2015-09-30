@@ -17,7 +17,6 @@ number_generator.get = function(callback)
 			while (number++ < this.max) {
 				if (!numbers[number]) {
 					numbers[number] = true;
-					console.log(numbers);
 					redis_client.set('numbers',numbers.toString());
 					callback(number);
 				}

@@ -1,34 +1,22 @@
 var express = require('express');
 var router = express.Router();
-var Paydesk = require('../models/paydesk');
-var Group = require('../models/group');
-var Client = require('../models/client');
-/* GET home page. */
+var passport = require('passport');
 
-
-
-router.get('/admin', function(req, res) {
-  res.render('adminangular');
+router.post('/login', passport.authenticate('local'), function(req, res) {
+    res.redirect('/');
 });
 
-router.get('/admin/groups', function(req, res) {
-  Group.find().exec(function(err,groups) {
-      res.render('admin/groups',{groups: groups});
-    });
+router.get('/', function(req, res) {
+    if (req.user) {
+      res.render('index', { user: req.user });
+    } else {
+      res.render('login',{ user: req.user });
+    }
 });
 
-router.get('/admin/paydesks', function(req, res) {
-  Paydesk.find().populate('group').exec(function(err,paydesks) {
-    Group.find().exec(function(err,groups) {
-      res.render('admin/paydesks',{paydesks : paydesks, groups: groups});
-    });
-  });
-});
-
-router.get('/caller', function(req, res) {
-  Paydesk.findOne({number: 10}).populate('group').exec(function(err,paydesk) {
-    res.render('caller',{paydesk: paydesk});
-  });
+router.get('/logout', function(req, res) {
+  req.logout();
+  res.redirect('/');
 });
 
 module.exports = router;

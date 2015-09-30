@@ -1,15 +1,31 @@
 var express = require('express');
 var router = express.Router();
-var Client = require('../models/client');
+var Group = require('../models/group');
 
 router.delete('/:id', function(req, res) {
-  Client.findOne({_id: req.params.id },function(err,client) {
-    if (!client) {
+
+
+  Group
+  .findOne({ clients: { $elemMatch: { _id: req.params.id } } })
+  .exec(function(err,group) {
+
+    if (!group) {
       res.json(404,{});
       return;
     }
-    client.remove(function() { res.json("true") });
+
+    if (req.connection.remoteAddress != group.clients.id(req.params.id).ip) {
+      res.json(401,{});
+      return;
+    }
+
+    var client = group.removeClient(req.params.id);
+    group.save();
+
+    res.json(client);
+
   });
+
 });
 
 module.exports = router;

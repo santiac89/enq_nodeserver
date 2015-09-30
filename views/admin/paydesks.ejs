@@ -1,4 +1,4 @@
-<% layout('../layout') -%>
+<% layout('../layouts/layout') -%>
 <!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
 
 <div class="container-fluid" ng-app="Admin" ng-controller="paydesksController" ng-init="refresh()">
@@ -20,7 +20,7 @@
 
           <tr ng-repeat="paydesk in paydesks">
             <td>{{paydesk.number}}</td>
-            <td>{{paydesk.group.name}}</td>
+            <td>{{paydesk.group_name}}</td>
             <td><a ng-click="delete(paydesk)" href="#"><span class="glyphicon glyphicon-remove" ></span></a></td>
             <td><a ng-click="_edit(paydesk)" href="#"><span class="glyphicon glyphicon-edit" ></span></a></td>
           </tr>
@@ -28,7 +28,7 @@
         </tbody>
       </table>
 
-      <a href="#"  class="btn btn-primary" ng-click="new()"><span class="glyphicon glyphicon-plus" ></span> Nueva caja</a>
+      <a href="#"  class="btn btn-success" ng-click="new()"><span class="glyphicon glyphicon-plus" ></span> Nueva caja</a>
 
     </div>
   </div>
@@ -45,7 +45,7 @@
               <label for="inputNumber">Numero de caja</label>
               <input type="text" class="form-control" id="inputNumber" placeholder="Numero de caja" ng-model="paydesk.number">
               <label for="inputGroup">Tipo de atencion</label>
-              <select id="selectGroup" class="form-control" ng-model="paydesk.group">
+              <select id="selectGroup" class="form-control" ng-model="paydesk_group">
                 <% groups.forEach(function(group) { %>
                   <option value="<%= group._id %>"><%= group.name %></option>
                 <% }); %>
@@ -54,7 +54,7 @@
         </div>
         <div class="modal-footer">
           <button type="button"  class="btn btn-default" data-dismiss="modal">Cancelar</button>
-          <button type="button"  class="btn btn-primary" data-dismiss="modal" ng-click="save()">Guardar</button>
+          <button type="button"  class="btn btn-success" data-dismiss="modal" ng-click="save()">Guardar</button>
         </div>
       </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
@@ -73,7 +73,7 @@
 
       $scope.new = true;
       $scope.paydesk = {};
-
+      $scope.paydesk_group = 0;
 
       $scope.refresh = function() {
         $http.get("/paydesks").success(function(paydesks) {
@@ -83,12 +83,12 @@
 
       $scope.save = function() {
         if ($scope.isnew) {
-          $http.post("/paydesks",$scope.paydesk).success(function(newPaydesk) {
+          $http.post("/groups/" + $scope.paydesk_group + "/paydesks",$scope.paydesk).success(function(newPaydesk) {
             $scope.reset();
             $scope.refresh();
           });
         } else {
-          $http.put("/paydesks/"+$scope.paydesk._id,$scope.paydesk).success(function(newPaydesk) {
+          $http.put("/groups/" + $scope.paydesk_group + "/paydesks/"+$scope.paydesk._id,$scope.paydesk).success(function(newPaydesk) {
             $scope.reset();
             $scope.refresh();
           });
@@ -105,14 +105,13 @@
 
       $scope.new = function() {
         $scope.isnew = true;
-        $scope.paydesk = {group:  "<%= groups[0]._id %>" };
         $('#paydeskEditModal').modal();
       }
 
       $scope._edit = function(paydesk) {
         $scope.isnew = false;
         $scope.paydesk = $.extend({}, paydesk);
-        $scope.paydesk.group = paydesk.group._id;
+        $scope.paydesk_group = paydesk.group_id;
         $('#paydeskEditModal').modal();
       }
 

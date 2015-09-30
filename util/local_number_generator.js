@@ -5,9 +5,7 @@ var local_number_generator = {
 
 local_number_generator.get = function(callback)
 {
-
       var number = 0;
-
 
       while (number++ < this.max) {
         if (!this.numbers[number]) {
@@ -15,7 +13,6 @@ local_number_generator.get = function(callback)
           return number;
         }
       }
-
 };
 
 local_number_generator.release = function(number)

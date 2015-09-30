@@ -1,21 +1,26 @@
 #!/usr/bin/env node
 var debug = require('debug')('enq');
-show_viewer = true;
 app = require('../app');
 var exec = require('child_process').exec;
-var fork = require('child_process').fork;
-var cluster = require('cluster');
 var PaydeskBus = require('../util/paydesk_bus');
+var mongoose = require('mongoose');///
+var Io = require('socket.io');
+var config = require('../config');
+var Group = require('../models/group');
 
-app.set('port', 3232);
+app.set('port', 8080);
 	// if (cluster.isMaster) {
 
 
 		var child = exec('node ./util/service_broadcaster.js '+ app.get('port'));
 		child.stdout.on('data', function(data) { console.log(data); });
 
-
-
+		process.on('SIGINT', function() {
+			mongoose.connection.close(function () {
+		    child.kill();
+		    process.exit(0);
+		  });
+		});
 		// Count the machine's CPUs
 	 // 	var cpuCount = require('os').cpus().length;
 
@@ -26,17 +31,47 @@ app.set('port', 3232);
 
 	// Code to run if we're in a worker process
 	// } else {
+
+/*
+**** THIRD-PARTY CONFIGURATIONS ****
+*/
+mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
+
 var server = app.listen(app.get('port'), function() {
 	console.log('Express server listening on port ' + server.address().port);
 });
 
-app.set('io',require('socket.io')(server));
+var io = Io(server);
 
-app.get('io').on('connection', function(ws) {
-  PaydeskBus.on('client_response', function(res) {
-    ws.emit('client_response', res);
-  });
+io.on('connection', function(socket) {
+
+  var paydesk_id;
+
+	socket.on('paydesk_connection', function(data) {
+
+		paydesk_id = data.paydesk_id;
+
+		Group.findByPaydesk(data.paydesk_id).exec(function(err, group) {
+			group.paydesks.id(data.paydesk_id).active = true;
+			group.save();
+		});
+	});
+
+
+	socket.once('disconnect', function () {
+		Group.findByPaydesk(paydesk_id).exec(function(err, group) {
+			group.paydesks.id(paydesk_id).active = false;
+			group.save();
+		});
+	});
+
+	PaydeskBus.on('client_response', function(res) {
+	  socket.emit('client_response', res);
+	});
+
 });
+
+
 
 // var viewer = { send: function() {} };
 

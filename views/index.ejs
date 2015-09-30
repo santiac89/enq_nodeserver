@@ -1,0 +1,49 @@
+<% layout('./layouts/layout') -%>
+<!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
+<div class="container-fluid" ng-app="Index" ng-controller="indexController" ng-init="refresh()">
+<div class="row row-underline">
+<div class="row" style="float: left;">
+<h1>
+  Selección de caja
+</h1>
+</div>
+<% if (user.role == "admin") { %>
+<div class="row" style="float: right;">
+      <a class="btn btn-success" href="/admin/groups">Administrar Grupos</a>
+      <a class="btn btn-success" href="/admin/paydesks">Administrar Cajas</a>
+      </div>
+<% } %>
+  </div>
+
+
+    <div class="list-group">
+      <a ng-repeat="paydesk in paydesks" href="/caller/{{paydesk._id}}">
+        <button  type="button" class="list-group-item">
+          Caja: {{paydesk.number}} - Tipo de atención: {{paydesk.group_name}}
+        </button>
+      </a>
+    </div>
+  </div>
+  <script type="text/javascript">
+    var app = angular.module('Index', []);
+    app.controller('indexController', function($scope,$http) {
+
+        $scope.paydesk = {};
+
+        $scope.refresh = function() {
+          $http.get("/paydesks").success(function(paydesks) {
+            $scope.paydesks = paydesks;
+          });
+        }
+    })
+  </script>
+
+<style type="text/css">
+
+  .row {
+    font-size: 50px;
+    text-align: center;
+  }
+
+</style>
+

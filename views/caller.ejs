@@ -1,11 +1,11 @@
-<% layout('layout') -%>
+<% layout('./layouts/layout') -%>
 <!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
 
-<div class="container-fluid" ng-app="Caller" ng-controller="callerController" >
+<div class="container-fluid" ng-app="Caller" ng-controller="callerController" ng-init="init()">
 
-  <div class="row">
-    <h1>Caja <%= paydesk.number %></h1>
-    <h3>Tipo de atención: <%= paydesk.group.name %></h3>
+  <div class="row paydesk_header">
+    <h1>Caja  <span class="green" style="font-size: 35px; "><%= paydesk.number %></span></h1>
+    <h3>Tipo de atención: <span class="green" style="font-size: 25px; "><%= group.name %></span></h3>
   </div>
 
 
@@ -23,13 +23,13 @@
         <h4>Número:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="current_client.number"></h4>
+        <h4 class="bold green" ng-bind="current_client.number"></h4>
     </div>
     <div class="col-md-3">
         <h4>Número:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="called_client.number"></h4>
+        <h4 class="bold green" ng-bind="called_client.number"></h4>
     </div>
   </div>
 
@@ -38,18 +38,33 @@
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="formatTimestamp(current_client.enqueue_time)"></h4>
+        <h4 class="bold green" ng-bind="formatTimestamp(current_client.enqueue_time)"></h4>
     </div>
     <div class="col-md-3">
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 ng-bind="formatTimestamp(called_client.enqueue_time)"></h4>
+        <h4 class="bold green" ng-bind="formatTimestamp(called_client.enqueue_time)"></h4>
     </div>
   </div>
 
-  <div class="row" style="text-align: center;">
-    <a href="#"  id="call_button" class="btn btn-primary" ng-click="callNext()">Próximo</a>
+  <div class="row">
+    <div class="col-md-3">
+        <h4>Respuesta:</h4>
+    </div>
+    <div class="col-md-3">
+        <h4 class="bold green" ng-bind="current_client.response"></h4>
+    </div>
+    <div class="col-md-3">
+        <h4>Respuesta:</h4>
+    </div>
+    <div class="col-md-3">
+        <h4 class="bold green" ng-bind="called_client.response"></h4>
+    </div>
+  </div>
+
+  <div class="row" style="text-align: center; margin-top: 15px;">
+    <a href="#"  id="call_button" class="btn btn-success" ng-click="callNext()">Llamar próximo</a>
   </div>
 
 </div>
@@ -57,27 +72,7 @@
 <script type='text/javascript' src='/javascripts/socket.io.js'></script>
 <script>
 
-  var socket = io('http://localhost:3232');
 
-  socket.on('client_response', function (data) {
-
-    if (data.paydesk_number != <%= paydesk.number %>) return;
-    console.log(data);
-     switch (data.response) {
-
-        case 'confirmed':
-          $("#call_button").removeAttr("disabled");
-        break;
-
-        case 'error':
-        break;
-
-        default:
-          $("#call_button").removeAttr("disabled");
-        break;
-     }
-
-  });
 
   var app = angular.module('Caller', []);
   app.controller('callerController', function($scope,$http) {
@@ -85,6 +80,57 @@
       $scope.current_client = {};
       $scope.called_client = {};
       $scope.paydesk = {};
+      $scope.socket = null;
+      $scope.call_interval_id = 0;
+      $scope.client_interval_id = 0;
+
+      $scope.init = function() {
+
+        $scope.socket = io('http://'+window.location.host);
+
+        $scope.socket.on('connect', function() {
+          $scope.socket.emit('paydesk_connection', { paydesk_id: "<%= paydesk._id %>" });
+        });
+
+        $scope.socket.on('client_response', function (data) {
+
+          if (data.paydesk_number != <%= paydesk.number %>) return;
+
+          clearInterval($scope.call_interval_id);
+
+          $scope.current_client = $scope.called_client;
+          $scope.called_client = {};
+
+          switch (data.message) {
+
+              case 'confirmed':
+                $scope.current_client.response = "Confirmado";
+                $scope.startClientConfirmedTimeout(function() {
+                  $("#call_button").html("Llamar próximo");
+                  $("#call_button").removeAttr("disabled");
+                });
+              break;
+
+              case 'error':
+                $scope.current_client.response = "ERROR";
+                $("#call_button").removeAttr("disabled");
+              break;
+
+              case 'cancelled':
+                $scope.current_client.response = "Cancelado";
+                $("#call_button").removeAttr("disabled");
+              break;
+
+              default:
+                $scope.current_client.response = "Reencolado";
+                $("#call_button").removeAttr("disabled");
+              break;
+           }
+
+           $scope.$apply();
+
+        });
+      }
 
       $scope.load = function(paydesk_id) {
         $http.get("/paydesks/<%= paydesk._id %>").success(function(paydesk) {
@@ -93,18 +139,50 @@
       }
 
       $scope.callNext = function() {
-        //if ($("#call_button").attr("disabled")) return;
-        $("#call_button").attr("disabled","disabled");
+
         $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
-          $scope.current_client = $scope.called_client;
+
+          $("#call_button").attr("disabled","disabled");
+
           $scope.called_client = next_client;
+          $scope.startCallResponseTimeout();
+
+
+        }).error(function() {
+            $scope.called_client.number = "No hay mas clientes.";
         });
       }
 
       $scope.formatTimestamp = function(timestamp) {
-
         var date = new Date(timestamp);
         return timestamp == undefined ? '' : date.getHours()+':'+date.getMinutes();
+      }
+
+      $scope.startCallResponseTimeout = function() {
+        var count =  <%= call_timeout %>;
+          $scope.call_interval_id = setInterval(function() {
+            $scope.called_client.response = "Esperando respuesta... " + count--;
+            $scope.$apply();
+
+            if (count == 0) {
+              clearInterval($scope.call_interval_id);
+            }
+
+          }, 1000);
+      }
+
+      $scope.startClientConfirmedTimeout = function(callback) {
+        var count =  <%= group.timeout %>;
+          $scope.client_interval_id = setInterval(function() {
+
+            $("#call_button").html("Esperando por el cliente... " + count--);
+
+            if (count == 0) {
+              clearInterval($scope.client_interval_id);
+              callback();
+            }
+
+          }, 1000);
       }
 
   });
