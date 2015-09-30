@@ -7,9 +7,8 @@ var mongoose = require('mongoose');///
 var Io = require('socket.io');
 var config = require('../config');
 var Group = require('../models/group');
-require('ofe').call();
 
-app.set('port', 3232);
+app.set('port', 8080);
 	// if (cluster.isMaster) {
 
 

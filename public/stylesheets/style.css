@@ -37,6 +37,11 @@ div.row.row-underline {
 
 .bold {
   font:  "Comfortaa-Bold", Helvetica, Arial, sans-serif;
+  font-size: 25px;
+}
+
+.green {
+  color: #409856;
 }
 
 body {

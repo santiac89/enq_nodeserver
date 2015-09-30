@@ -21,8 +21,8 @@ groupSchema.methods.enqueueClient = function(client) {
     return this;
 };
 
-groupSchema.methods.reenqueueClient = function(client_id) {
-    var client = this.removeClient(client_id);
+groupSchema.methods.reenqueueClient = function(client) {
+    var client = this.removeClient(client._id);
     this.enqueueClient(client);
     return this;
 };
@@ -45,13 +45,14 @@ groupSchema.methods.getPaydesk = function(paydesk_id) {
 
 groupSchema.methods.getNextClient = function() {
 
-    var next_client = null;
-
     for (i = this.clients.length - 1; i >= 0; i--) {
-      next_client = this.clients[i].status != 'called' ? this.clients[i] : null;
+      if (this.clients[i].status != 'called') {
+       return this.clients[i];
+
+      }
     }
 
-    return next_client;
+    return null;
 };
 
 groupSchema.methods.clientIsUnique = function(client) {
@@ -65,7 +66,7 @@ groupSchema.methods.clientIsUnique = function(client) {
   return true;
 };
 
-groupSchema.plugin(uniqueValidator);
+//groupSchema.plugin(uniqueValidator);
 
 var Group = mongoose.model('Group', groupSchema);
 

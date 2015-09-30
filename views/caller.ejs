@@ -4,8 +4,8 @@
 <div class="container-fluid" ng-app="Caller" ng-controller="callerController" ng-init="init()">
 
   <div class="row paydesk_header">
-    <h1>Caja  <span class="bold"><%= paydesk.number %></span></h1>
-    <h3>Tipo de atención: <span class="bold"><%= group.name %></span></h3>
+    <h1>Caja  <span class="green" style="font-size: 35px; "><%= paydesk.number %></span></h1>
+    <h3>Tipo de atención: <span class="green" style="font-size: 25px; "><%= group.name %></span></h3>
   </div>
 
 
@@ -23,13 +23,13 @@
         <h4>Número:</h4>
     </div>
     <div class="col-md-3">
-        <h4 class="bold" ng-bind="current_client.number"></h4>
+        <h4 class="bold green" ng-bind="current_client.number"></h4>
     </div>
     <div class="col-md-3">
         <h4>Número:</h4>
     </div>
     <div class="col-md-3">
-        <h4 class="bold" ng-bind="called_client.number"></h4>
+        <h4 class="bold green" ng-bind="called_client.number"></h4>
     </div>
   </div>
 
@@ -38,13 +38,13 @@
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 class="bold" ng-bind="formatTimestamp(current_client.enqueue_time)"></h4>
+        <h4 class="bold green" ng-bind="formatTimestamp(current_client.enqueue_time)"></h4>
     </div>
     <div class="col-md-3">
         <h4>Horario de ingreso:</h4>
     </div>
     <div class="col-md-3">
-        <h4 class="bold" ng-bind="formatTimestamp(called_client.enqueue_time)"></h4>
+        <h4 class="bold green" ng-bind="formatTimestamp(called_client.enqueue_time)"></h4>
     </div>
   </div>
 
@@ -53,18 +53,18 @@
         <h4>Respuesta:</h4>
     </div>
     <div class="col-md-3">
-        <h4 class="bold" ng-bind="current_client.response"></h4>
+        <h4 class="bold green" ng-bind="current_client.response"></h4>
     </div>
     <div class="col-md-3">
         <h4>Respuesta:</h4>
     </div>
     <div class="col-md-3">
-        <h4 class="bold" ng-bind="called_client.response"></h4>
+        <h4 class="bold green" ng-bind="called_client.response"></h4>
     </div>
   </div>
 
-  <div class="row" style="text-align: center;">
-    <a href="#"  id="call_button" class="btn btn-success" ng-click="callNext()">Próximo</a>
+  <div class="row" style="text-align: center; margin-top: 15px;">
+    <a href="#"  id="call_button" class="btn btn-success" ng-click="callNext()">Llamar próximo</a>
   </div>
 
 </div>
@@ -98,27 +98,31 @@
 
           clearInterval($scope.call_interval_id);
 
+          $scope.current_client = $scope.called_client;
+          $scope.called_client = {};
+
           switch (data.message) {
 
               case 'confirmed':
-                $scope.called_client.response = "Confirmado";
+                $scope.current_client.response = "Confirmado";
                 $scope.startClientConfirmedTimeout(function() {
+                  $("#call_button").html("Llamar próximo");
                   $("#call_button").removeAttr("disabled");
                 });
               break;
 
               case 'error':
-                $scope.called_client.response = "ERROR";
+                $scope.current_client.response = "ERROR";
                 $("#call_button").removeAttr("disabled");
               break;
 
               case 'cancelled':
-                $scope.called_client.response = "Cancelado";
+                $scope.current_client.response = "Cancelado";
                 $("#call_button").removeAttr("disabled");
               break;
 
               default:
-                $scope.called_client.response = "Reencolado";
+                $scope.current_client.response = "Reencolado";
                 $("#call_button").removeAttr("disabled");
               break;
            }
@@ -139,7 +143,7 @@
         $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
 
           $("#call_button").attr("disabled","disabled");
-          $scope.current_client = $scope.called_client;
+
           $scope.called_client = next_client;
           $scope.startCallResponseTimeout();
 
@@ -170,8 +174,8 @@
       $scope.startClientConfirmedTimeout = function(callback) {
         var count =  <%= group.timeout %>;
           $scope.client_interval_id = setInterval(function() {
-            $scope.called_client.response = "Esperando por el cliente... " + count--;
-            $scope.$apply();
+
+            $("#call_button").html("Esperando por el cliente... " + count--);
 
             if (count == 0) {
               clearInterval($scope.client_interval_id);

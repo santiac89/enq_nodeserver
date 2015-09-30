@@ -57,16 +57,25 @@ router.get('/:id/clients/next', function(req, res) {
 
     paydesk = group.getPaydesk(req.params.id);
 
-    var current_client = paydesk.removeClient();
+    if (paydesk.current_client.length == 1) {
 
-    if (current_client) {
-
+      // TODO CHECQUE
       group.confirmed_clients++;
-      group.confirmed_times += Date.now() - current_client.confirmed_time;
+      group.confirmed_times += Date.now() - paydesk.current_client.confirmed_time;
 
-      current_client.saveToHistory();
-      group.save();
 
+      paydesk.current_client[0].saveToHistory();
+      paydesk.current_client[0].remove();
+
+      group.save((err) => { console.log(err) });
+
+    }
+
+    if (paydesk.called_client.length == 1) {
+      if (!next_client) {
+        res.json(404, {});
+        return;
+      };
     }
 
     var next_client = group.getNextClient();
@@ -76,8 +85,9 @@ router.get('/:id/clients/next', function(req, res) {
       return;
     };
 
+    console.log(next_client);
 
-    ClientCaller(group, paydesk, next_client).Call();
+    ClientCaller(group._id, paydesk._id, next_client._id).Call();
 
     res.json(next_client);
 
