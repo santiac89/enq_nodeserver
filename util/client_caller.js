@@ -21,15 +21,18 @@ var ClientCaller = function(group, paydesk, client) {
 
       client.setCalledBy(this.paydesk.number);
       paydesk.called_client = client;
-      group.save();
 
-      var call_message = JSON.stringify({
-        paydesk_number: paydesk.number,
-        reenqueue_count: client.reenqueue_count
-      }) + '\n';
+      group.save(function(err) {
 
-      socket.write(call_message, 'UTF-8', function(err) {
-        socket.setTimeout(config.call_timeout*1000);
+        var call_message = JSON.stringify({
+          paydesk_number: paydesk.number,
+          reenqueue_count: client.reenqueue_count
+        }) + '\n';
+
+        socket.write(call_message, 'UTF-8', function(err) {
+          socket.setTimeout(config.call_timeout*1000);
+        });
+
       });
     });
 
@@ -42,10 +45,7 @@ var ClientCaller = function(group, paydesk, client) {
       var client = group.clients.id(this.client);
       var paydesk = group.paydesks.id(this.paydesk);
 
-      paydesk.called_client[0].remove();
-      group.save();
-
-      console.log(response.toString())
+      paydesk.called_client = [];
 
       socket.end();
 
@@ -67,7 +67,7 @@ var ClientCaller = function(group, paydesk, client) {
       var client = group.clients.id(this.client);
       var paydesk = group.paydesks.id(this.paydesk);
 
-      paydesk.called_client[0].remove();
+      paydesk.called_client = [];
       group.save();
 
       socket.end();
@@ -88,7 +88,7 @@ var ClientCaller = function(group, paydesk, client) {
       client.setErrored(err);
       client.saveToHistory();
       client.remove();
-      paydesk.called_client[0].remove();
+      paydesk.called_client = [];
       group.save();
       PaydeskBus.send(paydesk.number, "error");
 
@@ -126,7 +126,6 @@ var ClientCaller = function(group, paydesk, client) {
   this.OnClientConfirm = function(group, paydesk, client) {
     client.setConfirmed();
     client.remove();
-    console.log(client);
     paydesk.current_client = client;
     group.save();
     PaydeskBus.send(paydesk.number, 'confirmed');
@@ -143,10 +142,7 @@ var ClientCaller = function(group, paydesk, client) {
         self.OnSocketConnection(this);
       });
 
-      client_tcp_conn.on('data', function(data) {
-        self.OnSocketData(this, data);
-      });
-
+      client_tcp_conn.on('data', function(data) { self.OnSocketData(this, data); });
       client_tcp_conn.on('error', function(err) { self.OnSocketError(this , err); });
       client_tcp_conn.on('timeout', function() { self.OnSocketTimeout(this); });
       client_tcp_conn.on('close', function(had_error) { self.OnSocketClose(this, had_error); });
