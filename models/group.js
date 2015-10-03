@@ -5,16 +5,13 @@ var paydeskSchema = require('./paydesk');
 var Schema = mongoose.Schema;
 
 var groupSchema = mongoose.Schema({
-
-	timeout: { type: Number, required: true , unique: false},
+    timeout: { type: Number, required: true , unique: false},
     name: { type: String, required: true , unique: true},
-	paydesks:  [paydeskSchema],
+    paydesks:  [paydeskSchema],
     clients: [clientSchema],
     confirmed_clients:  { type: Number, default: 0 },
     confirmed_times:  { type: Number, default: 0 }
-
 });
-
 
 groupSchema.methods.enqueueClient = function(client) {
 	this.clients.push(client);
@@ -37,10 +34,6 @@ groupSchema.methods.removePaydesk = function(paydesk_id) {
   var paydesk = this.paydesks.id(paydesk_id);
   paydesk.remove();
   return paydesk;
-};
-
-groupSchema.methods.getPaydesk = function(paydesk_id) {
-  return this.paydesks.id(paydesk_id);
 };
 
 groupSchema.methods.getNextClient = function() {
@@ -66,7 +59,7 @@ groupSchema.methods.clientIsUnique = function(client) {
   return true;
 };
 
-//groupSchema.plugin(uniqueValidator);
+groupSchema.plugin(uniqueValidator);
 
 var Group = mongoose.model('Group', groupSchema);
 

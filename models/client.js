@@ -3,9 +3,9 @@ var config = require('../config');
 var ClientHistory = require('./client_history');
 
 var clientSchema = mongoose.Schema({
-  number:  { type: Number, required: false , unique: true},
-  hmac:  { type: String, required: true , unique: true},
-  ip:  { type: String, required: true , unique: true},
+  number:  { type: Number, required: false },
+  hmac:  { type: String, required: true },
+  ip:  { type: String, required: true },
   reenqueue_count: { type: Number, default: 0 },
   enqueue_time: { type: Number, default: 0 },
   called_time: { type: Number, default: 0 },

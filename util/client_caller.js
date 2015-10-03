@@ -96,7 +96,7 @@ var ClientCaller = function(group, paydesk, client) {
   };
 
   this.OnSocketClose = function(socket, had_error) {
-    console.log("CLOSE");
+    if (had_error) console.log("ERROR ON SOCKET");
   }
 
   this.OnClientReenqueue = function(group, paydesk, client, reason) {

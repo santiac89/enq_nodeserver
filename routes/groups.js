@@ -95,10 +95,10 @@ router.post('/:id/clients', function(req, res) {
       hmac: req.body.hmac
     }
 
-    // if (!group.clientIsUnique(new_client)) {
-    //   res.json(500,{});
-    //   return;
-    // }
+    if (app.settings.env == 'production' && !group.clientIsUnique(new_client)) {
+      res.json(500,{});
+      return;
+    }
 
     new_client.enqueue_time = Date.now();
     new_client.number = number_generator.get();

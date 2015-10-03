@@ -60,8 +60,8 @@ router.get('/:id/clients/next', function(req, res) {
     if (paydesk.current_client.length == 1) {
 
       // TODO CHECQUE
-      // group.confirmed_clients++;
-      // group.confirmed_times += Date.now() - paydesk.current_client.confirmed_time;
+      group.confirmed_clients++;
+      group.confirmed_times += Date.now() - paydesk.current_client[0].confirmed_time;
 
       paydesk.current_client[0].saveToHistory();
       paydesk.current_client[0].remove();

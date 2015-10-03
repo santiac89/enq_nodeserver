@@ -4,7 +4,6 @@ var Group = require('../models/group');
 
 router.delete('/:id', function(req, res) {
 
-
   Group
   .findOne({ clients: { $elemMatch: { _id: req.params.id } } })
   .exec(function(err,group) {
