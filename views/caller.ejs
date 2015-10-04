@@ -140,17 +140,19 @@
 
       $scope.callNext = function() {
 
-        $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
+        if ($("#call_button").attr("disabled") == undefined) {
+          $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
 
-          $("#call_button").attr("disabled","disabled");
+            $("#call_button").attr("disabled","disabled");
 
-          $scope.called_client = next_client;
-          $scope.startCallResponseTimeout();
+            $scope.called_client = next_client;
+            $scope.startCallResponseTimeout();
 
 
-        }).error(function() {
-            $scope.called_client.number = "No hay mas clientes.";
-        });
+          }).error(function() {
+              $scope.called_client.number = "No hay mas clientes.";
+          });
+        }
       }
 
       $scope.formatTimestamp = function(timestamp) {

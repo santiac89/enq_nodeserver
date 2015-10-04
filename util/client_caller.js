@@ -16,6 +16,8 @@ var ClientCaller = function(group, paydesk, client) {
 
     Group.findByClient(this.client).exec((err, group) => {
 
+      if (!group) return;
+
       var client = group.clients.id(this.client);
       var paydesk = group.paydesks.id(this.paydesk);
 
@@ -42,12 +44,14 @@ var ClientCaller = function(group, paydesk, client) {
 
     Group.findByClient(this.client).exec((err, group) => {
 
+      if (!group) return;
+
       var client = group.clients.id(this.client);
       var paydesk = group.paydesks.id(this.paydesk);
 
       paydesk.called_client = [];
 
-      socket.end();
+      console.log(response.toString());
 
       if (response.toString() == "confirm") {
         this.OnClientConfirm(group, paydesk, client);
@@ -57,12 +61,16 @@ var ClientCaller = function(group, paydesk, client) {
         this.OnClientReenqueue(group, paydesk, client, "extend");
       }
 
+      socket.end();
+
     });
   };
 
   this.OnSocketTimeout = (socket) => {
 
     Group.findByClient(this.client).exec((err, group) => {
+
+      if (!group) return;
 
       var client = group.clients.id(this.client);
       var paydesk = group.paydesks.id(this.paydesk);
@@ -82,6 +90,8 @@ var ClientCaller = function(group, paydesk, client) {
 
     Group.findByClient(this.client).exec((err, group) => {
 
+      if (!group) return;
+
       var client = group.clients.id(this.client);
       var paydesk = group.paydesks.id(this.paydesk);
 
@@ -93,10 +103,11 @@ var ClientCaller = function(group, paydesk, client) {
       PaydeskBus.send(paydesk.number, "error");
 
     });
+
   };
 
   this.OnSocketClose = function(socket, had_error) {
-    if (had_error) console.log("ERROR ON SOCKET");
+    console.log("SOCKET CLOSED");
   }
 
   this.OnClientReenqueue = function(group, paydesk, client, reason) {
@@ -136,6 +147,8 @@ var ClientCaller = function(group, paydesk, client) {
     var self = this;
 
     Group.findByClient(this.client).exec(function(err, group) {
+
+      if (!group) return;
 
       var client = group.clients.id(self.client);
       var client_tcp_conn = net.createConnection(3131, client.ip, function() {

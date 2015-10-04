@@ -13,12 +13,14 @@ router.delete('/:id', function(req, res) {
       return;
     }
 
-    if (req.connection.remoteAddress != group.clients.id(req.params.id).ip) {
-      res.json(401,{});
-      return;
-    }
+    // if (req.connection.remoteAddress != group.clients.id(req.params.id).ip) {
+    //   res.json(401,{});
+    //   return;
+    // }
 
-    var client = group.removeClient(req.params.id);
+    var client = group.clients.id(req.params.id);
+    client.saveToHistory();
+    client.remove();
     group.save();
 
     res.json(client);
