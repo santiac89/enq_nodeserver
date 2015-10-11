@@ -113,9 +113,9 @@ router.post('/:id/clients', function(req, res) {
       }
 
       res.json({
-        estimated_time: 0,
         client_number: group.clients[group.clients.length - 1].number,
-        client_id:  group.clients[group.clients.length - 1]._id
+        client_id:  group.clients[group.clients.length - 1]._id,
+        time_to_arrive: group.timeout
       });
 
     });
