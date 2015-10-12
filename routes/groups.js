@@ -115,7 +115,7 @@ router.post('/:id/clients', function(req, res) {
       res.json({
         client_number: group.clients[group.clients.length - 1].number,
         client_id:  group.clients[group.clients.length - 1]._id,
-        time_to_arrive: group.timeout
+        paydesk_arrival_timeout: group.paydesk_arrival_timeout
       });
 
     });

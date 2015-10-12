@@ -9,6 +9,11 @@ var PaydeskBus = {
 
   on: function(event, callback) {
     event_bus.on(event, callback);
+  },
+
+  remove: function(callback) {
+    console.log(callback);
+    event_bus.removeListener(callback);
   }
 
 };

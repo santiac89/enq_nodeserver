@@ -33,6 +33,24 @@ router.get('/', function(req, res) {
 });
 
 
+router.get('/:id', function(req, res) {
+
+  if (!req.user) res.redirect('/');
+
+  Group.findByPaydesk(req.params.id).exec(function(err,group) {
+
+    if (!group) {
+      res.json(404,{});
+      return;
+    }
+
+    res.json(group.paydesks.id(req.params.id));
+
+  });
+
+});
+
+
 router.delete('/:id', function(req, res) {
 
   Group.findByPaydesk(req.params.id).exec(function(err,group) {
@@ -59,7 +77,6 @@ router.get('/:id/clients/next', function(req, res) {
 
     if (paydesk.current_client.length == 1) {
 
-      // TODO CHECQUE
       group.confirmed_clients++;
       group.confirmed_times += Date.now() - paydesk.current_client[0].confirmed_time;
 

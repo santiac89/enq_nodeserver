@@ -5,7 +5,7 @@ var paydeskSchema = require('./paydesk');
 var Schema = mongoose.Schema;
 
 var groupSchema = mongoose.Schema({
-    timeout: { type: Number, required: true , unique: false},
+    paydesk_arrival_timeout: { type: Number, required: true , unique: false},
     name: { type: String, required: true , unique: true},
     paydesks:  [paydeskSchema],
     clients: [clientSchema],

@@ -65,24 +65,9 @@ io.on('connection', function(socket) {
 		});
 	});
 
+//TODO Remove LISTENER ON DISCONNECT
 	PaydeskBus.on('client_response', function(res) {
 	  socket.emit('client_response', res);
 	});
 
 });
-
-
-
-// var viewer = { send: function() {} };
-
-// if (process.argv[2] == "--viewer") {
-// 	viewer = fork('./util/viewer.js');
-// }
-
-// app.set('viewer',  viewer )
-
-	// }
-
-
-
-

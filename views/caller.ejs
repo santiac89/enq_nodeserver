@@ -86,6 +86,8 @@
 
       $scope.init = function() {
 
+        $scope.reloadStatus();
+
         $scope.socket = io('http://'+window.location.host);
 
         $scope.socket.on('connect', function() {
@@ -105,10 +107,7 @@
 
               case 'confirmed':
                 $scope.current_client.response = "Confirmado";
-                $scope.startClientConfirmedTimeout(function() {
-                  $("#call_button").html("Llamar próximo");
-                  $("#call_button").removeAttr("disabled");
-                });
+                $scope.startArrivalTimeout(<%= group.paydesk_arrival_timeout %>);
               break;
 
               case 'error':
@@ -131,14 +130,24 @@
 
         });
 
-        $scope.load();
-
       }
 
-      $scope.load = function(paydesk_id) {
-        $http.get("/paydesks/<%= paydesk._id %>").success(function(paydesk) {
-          $scope.paydesk = paydesk;
-        });
+      $scope.reloadStatus = function() {
+
+        $scope.paydesk = JSON.parse("<%= JSON.stringify(paydesk) %>".replace(/&quot;/g, '"'));
+        $scope.current_client =  JSON.parse("<%= JSON.stringify(current_client) %>".replace(/&quot;/g, '"'));
+        $scope.called_client =  JSON.parse("<%= JSON.stringify(called_client) %>".replace(/&quot;/g, '"'));
+
+        if ($scope.current_client.remain_to_arrive > 0) {
+           $("#call_button").attr("disabled","disabled");
+           $scope.startArrivalTimeout($scope.current_client.remain_to_arrive);
+        }
+
+        if ($scope.called_client.remain_to_response > 0) {
+           $("#call_button").attr("disabled","disabled");
+           $scope.startCallResponseTimeout($scope.called_client.remain_to_response);
+        }
+
       }
 
       $scope.callNext = function() {
@@ -149,7 +158,7 @@
             $("#call_button").attr("disabled","disabled");
 
             $scope.called_client = next_client;
-            $scope.startCallResponseTimeout();
+            $scope.startCallResponseTimeout(<%= call_timeout %>);
 
 
           }).error(function() {
@@ -163,8 +172,8 @@
         return timestamp == undefined ? '' : date.getHours()+':'+date.getMinutes();
       }
 
-      $scope.startCallResponseTimeout = function() {
-        var count =  <%= call_timeout %>;
+      $scope.startCallResponseTimeout = function(seconds) {
+        var count =  seconds;
           $scope.call_interval_id = setInterval(function() {
             $scope.called_client.response = "Esperando respuesta... " + count--;
             $scope.$apply();
@@ -176,15 +185,16 @@
           }, 1000);
       }
 
-      $scope.startClientConfirmedTimeout = function(callback) {
-        var count =  <%= group.timeout %>;
-          $scope.client_interval_id = setInterval(function() {
+      $scope.startArrivalTimeout = function(seconds, callback) {
+        var count = seconds;
+          $scope.confirmed_interval_id = setInterval(function() {
 
             $("#call_button").html("Esperando por el cliente... " + count--);
 
             if (count == 0) {
-              clearInterval($scope.client_interval_id);
-              callback();
+              clearInterval($scope.confirmed_interval_id);
+              $("#call_button").html("Llamar próximo");
+              $("#call_button").removeAttr("disabled");
             }
 
           }, 1000);
