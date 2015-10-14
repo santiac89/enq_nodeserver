@@ -11,9 +11,8 @@ var PaydeskBus = {
     event_bus.on(event, callback);
   },
 
-  remove: function(callback) {
-    console.log(callback);
-    event_bus.removeListener(callback);
+  remove: function(event, callback) {
+    event_bus.removeListener(event, callback);
   }
 
 };

@@ -153,7 +153,7 @@
       $scope.callNext = function() {
 
         if ($("#call_button").attr("disabled") == undefined) {
-          $http.get("/paydesks/<%= paydesk._id %>/clients/next").success(function(next_client) {
+          $http.get("/caller/<%= paydesk._id %>/clients/next").success(function(next_client) {
 
             $("#call_button").attr("disabled","disabled");
 

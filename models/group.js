@@ -10,7 +10,13 @@ var groupSchema = mongoose.Schema({
     paydesks:  [paydeskSchema],
     clients: [clientSchema],
     confirmed_clients:  { type: Number, default: 0 },
-    confirmed_times:  { type: Number, default: 0 }
+    confirmed_times:  { type: Number, default: 0 },
+    paydesks_count:  { type: Number, default: 0 }
+});
+
+groupSchema.pre('save', function(next) {
+  this.paydesks_count = this.paydesks.length;
+  next();
 });
 
 groupSchema.methods.enqueueClient = function(client) {
@@ -38,7 +44,7 @@ groupSchema.methods.removePaydesk = function(paydesk_id) {
 
 groupSchema.methods.getNextClient = function() {
 
-    for (i = this.clients.length - 1; i >= 0; i--) {
+    for (i = 0;i < this.clients.length ; i++) {
       if (this.clients[i].status != 'called') {
        return this.clients[i];
 

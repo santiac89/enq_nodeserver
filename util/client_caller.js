@@ -118,10 +118,12 @@ var ClientCaller = function(group, paydesk, client) {
         client.saveToHistory();
         client.remove();
         group.save();
+        group.clients.map((c) => console.log(c.number));
         PaydeskBus.send(paydesk.number, 'queue_limit_reached');
     } else {
         group.reenqueueClient(client);
         group.save();
+        group.clients.map((c) => console.log(c.number));
         PaydeskBus.send(paydesk.number, reason);
     }
   }
@@ -131,6 +133,7 @@ var ClientCaller = function(group, paydesk, client) {
     client.saveToHistory();
     client.remove();
     group.save();
+    group.clients.map((c) => console.log(c.number));
     PaydeskBus.send(paydesk.number, 'cancelled');
   };
 
@@ -139,6 +142,7 @@ var ClientCaller = function(group, paydesk, client) {
     client.remove();
     paydesk.current_client = client;
     group.save();
+    group.clients.map((c) => console.log(c.number));
     PaydeskBus.send(paydesk.number, 'confirmed');
   }
 

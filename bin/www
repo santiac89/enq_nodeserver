@@ -47,6 +47,10 @@ io.on('connection', function(socket) {
 
   var paydesk_id;
 
+  var client_response_callback = function(res) {
+	  socket.emit('client_response', res);
+	};
+
 	socket.on('paydesk_connection', function(data) {
 
 		paydesk_id = data.paydesk_id;
@@ -59,6 +63,9 @@ io.on('connection', function(socket) {
 
 
 	socket.once('disconnect', function () {
+
+		PaydeskBus.remove('client_response', client_response_callback);
+
 		Group.findByPaydesk(paydesk_id).exec(function(err, group) {
 			group.paydesks.id(paydesk_id).active = false;
 			group.save();
@@ -66,8 +73,6 @@ io.on('connection', function(socket) {
 	});
 
 //TODO Remove LISTENER ON DISCONNECT
-	PaydeskBus.on('client_response', function(res) {
-	  socket.emit('client_response', res);
-	});
+	PaydeskBus.on('client_response', client_response_callback);
 
 });

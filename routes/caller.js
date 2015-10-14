@@ -2,10 +2,9 @@ var express = require('express');
 var router = express.Router();
 var Group = require('../models/group');
 var config = require('../config');
+var ClientCaller = require('../util/client_caller');
 
 router.get('/:id', function(req, res) {
-
-  if (!req.user) res.redirect('/');
 
   Group.findByPaydesk(req.params.id).exec(function(err,group) {
 
@@ -72,6 +71,50 @@ router.get('/:id', function(req, res) {
 
   });
 
+});
+
+router.get('/:id/clients/next', function(req, res) {
+
+  Group.findByPaydesk(req.params.id).exec(function(err,group) {
+
+    if (!group) {
+      res.json(404,err);
+      return;
+    }
+
+    paydesk = group.paydesks.id(req.params.id);
+
+    if (paydesk.current_client.length == 1) {
+
+      group.confirmed_clients++;
+      group.confirmed_times += Date.now() - paydesk.current_client[0].confirmed_time;
+
+      paydesk.current_client[0].saveToHistory();
+      paydesk.current_client[0].remove();
+
+      group.save();
+
+    }
+
+    if (paydesk.called_client.length == 1) {
+      if (!next_client) {
+        res.json(404, {});
+        return;
+      };
+    }
+
+    var next_client = group.getNextClient();
+
+    if (!next_client) {
+      res.json(404, {});
+      return;
+    };
+
+    ClientCaller(group._id, paydesk._id, next_client._id).Call();
+
+    res.json(next_client);
+
+  });
 });
 
 module.exports = router;

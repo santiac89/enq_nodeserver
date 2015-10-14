@@ -25,7 +25,7 @@ var caller = require('./routes/caller');
 var admins = require('./routes/admins');
 var groups = require('./routes/groups');
 var paydesks = require('./routes/paydesks');
-var clients = require('./routes/clients');
+var mobile = require('./routes/mobile');
 
 /*
  **** VIEWS CONFIGURATION ****
@@ -62,12 +62,22 @@ passport.deserializeUser(User.deserializeUser());
  ***** ROUTES *******
 */
 app.use('/', index);
+app.use('/m', mobile);
+
+app.use(function(req, res, next) {
+ if (!req.user) {
+    var err = new Error('Not Found ;(');
+    err.status = 404;
+    next(err);
+    return;
+  }
+  next();
+})
+
 app.use('/caller', caller);
 app.use('/admin', admins);
-app.use('/clients', clients);
 app.use('/groups', groups);
 app.use('/paydesks', paydesks);
-
 
 /*
  **** ERROR HANDLERS CONFIGURATIONS ****
