@@ -169,7 +169,10 @@
 
       $scope.formatTimestamp = function(timestamp) {
         var date = new Date(timestamp);
-        return timestamp == undefined ? '' : date.getHours()+':'+date.getMinutes();
+        var hours = (date.getHours().length == 1 ? "0" :"") + date.getHours();
+        var minutes = (date.getMinutes().length == 1 ? "0" :"") + date.getMinutes();
+
+        return timestamp == undefined ? '' : hours+':'+minutes;
       }
 
       $scope.startCallResponseTimeout = function(seconds) {

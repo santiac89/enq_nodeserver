@@ -30,8 +30,6 @@ router.delete('/clients/:id', function(req, res) {
     client.remove();
     group.save();
 
-    group.clients.map((c) => console.log(c.number));
-
     res.json(client);
 
   });
@@ -61,8 +59,6 @@ router.post('/groups/:id/clients', function(req, res) {
 
     group.clients.push(new_client);
 
-    group.clients.map((c) => console.log(c.number));
-
     group.save(function(err,group) {
 
       if (err) {
@@ -73,7 +69,8 @@ router.post('/groups/:id/clients', function(req, res) {
       res.json({
         client_number: group.clients[group.clients.length - 1].number,
         client_id:  group.clients[group.clients.length - 1]._id,
-        paydesk_arrival_timeout: group.paydesk_arrival_timeout
+        paydesk_arrival_timeout: group.paydesk_arrival_timeout,
+        group_name: group.name
       });
 
     });

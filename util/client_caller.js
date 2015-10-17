@@ -28,7 +28,8 @@ var ClientCaller = function(group, paydesk, client) {
 
         var call_message = JSON.stringify({
           paydesk_number: paydesk.number,
-          reenqueue_count: client.reenqueue_count
+          reenqueue_count: client.reenqueue_count,
+          next_estimated_time: Math.round(group.confirmed_times / (group.confirmed_clients == 0 ? 1 : group.confirmed_clients) / 60000)
         }) + '\n';
 
         socket.write(call_message, 'UTF-8', function(err) {

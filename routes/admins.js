@@ -14,4 +14,8 @@ router.get('/paydesks', function(req, res) {
   });
 });
 
+router.get('/viewer', function(req, res) {
+  res.render('admin/viewer',{ user: req.user });
+});
+
 module.exports = router;

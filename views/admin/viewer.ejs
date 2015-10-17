@@ -1,0 +1,48 @@
+<% layout('../layouts/layout') -%>
+<!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
+
+<div class="container-fluid" ng-app="Admin" ng-controller="viewerController" ng-init="refresh()">
+
+  <div class="row">
+    <h1>Visualizador de grupos</h1>
+  </div>
+
+  <div class="row" ng-repeat="group in groups">
+    <div class="row">
+      {{ group.name }}
+    </div>
+    <div class="row">
+      Clients: <a ng-repeat="client in group.clients">{{client.number}}</a>
+    </div>
+    <div class="row" ng-repeat="paydesk in group.paydesks">
+      Paydesk {{ paydesk.number }}: {{ paydesk.current_client[0].number }} {{ paydesk.called_client[0].number }}
+    </div>
+
+  </div>
+
+
+</div>
+
+
+
+
+<script>
+
+  var app = angular.module('Admin', []);
+  app.controller('viewerController', function($scope,$http) {
+
+    $scope.groups = []
+
+      $scope.refresh = function() {
+        $http.get("/groups").success(function(groups) {
+          $scope.groups = groups;
+        });
+      }
+
+
+
+  });
+
+</script>
+
+
