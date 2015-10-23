@@ -1,0 +1,127 @@
+<% layout('../layouts/layout') -%>
+<!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
+
+<div class="container-fluid" ng-app="Admin" ng-controller="userController" ng-init="refresh()">
+
+  <div class="row">
+    <h1>Administracion de usuarios</h1>
+  </div>
+
+  <div class="row">
+    <div class="col-md-10">
+      <table class="table table-hover">
+        <thead>
+          <th>Nombre</th>
+          <th>Rol</th>
+          <th>Eliminar</th>
+          <th>Editar</th>
+        </thead>
+        <tbody>
+
+          <tr ng-repeat="user in users">
+            <td>{{user.username}}</td>
+            <td>{{user.role}}</td>
+            <td><a ng-click="delete(user)" href="#"><span class="glyphicon glyphicon-remove" ></span></a></td>
+            <td><a ng-click="_edit(user)" href="#"><span class="glyphicon glyphicon-edit" ></span></a></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <a href="#"  class="btn btn-success" ng-click="new()"><span class="glyphicon glyphicon-plus" ></span> Nuevo usuario</a>
+
+    </div>
+  </div>
+
+  <div class="modal fade" id="userEditModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" ng-hide="new">Editar usuario</h4>
+          <h4 class="modal-title" ng-show="new">Nuevo usuario</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="inputUsername">Nombre</label>
+            <input type="text" class="form-control" id="inputUsername" placeholder="Nombre" ng-model="user.username">
+          </div>
+
+          <div class="form-group">
+            <label for="inputRole">Rol</label>
+            <input type="text" class="form-control" id="inputRole" placeholder="Rol" ng-model="user.role">
+          </div>
+
+          <div class="form-group">
+            <label for="inputPassword">Password</label>
+            <input type="password" class="form-control" id="inputPassword" placeholder="Pasword" ng-model="user.password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal" ng-click="save()">Guardar</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+</div>
+
+<script>
+
+  var app = angular.module('Admin', []);
+  app.controller('userController', function($scope,$http) {
+
+      $scope.user = {};
+      $scope.isnew = true;
+
+      $scope.refresh = function() {
+        $http.get("/users").success(function(users) {
+          $scope.users = users;
+        });
+      }
+
+      $scope.save = function() {
+        if ($scope.isnew) {
+          $http.post("/users", $scope.user).success(function(newUser) {
+            $scope.reset();
+            $scope.refresh();
+          });
+        } else {
+          $http.put("/users/"+$scope.user._id, $scope.user).success(function(newUser) {
+            $scope.reset();
+            $scope.refresh();
+          });
+        }
+      }
+
+      $scope.delete = function(user) {
+        if (confirm("Esta seguro que desea eliminar \""+user.username+"\" ?")) {
+          $http.delete("/users/"+user._id).success(function(res) {
+            $scope.refresh();
+          });
+        }
+      }
+
+      $scope.reset = function() {
+        $scope.group = {};
+      }
+
+     $scope.new = function() {
+        $scope.isnew = true;
+        $scope.user = {};
+        $('#userEditModal').modal();
+      }
+
+      $scope._edit = function(user) {
+        $scope.isnew = false;
+        $scope.user = $.extend({}, user);
+        $scope.user._id = user._id;
+        $('#userEditModal').modal();
+      }
+
+
+  });
+
+</script>
+
+

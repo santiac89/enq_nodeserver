@@ -39,7 +39,12 @@ router.put('/:id', function(req, res) {
 
 router.delete('/:id', function(req, res) {
   Group.findOne({_id: req.params.id },function(err,group) {
-    if (err) res.json(404,err);
+
+    if (err) {
+      res.json(404,err);
+      return;
+    }
+
     group.remove();
     res.json(group);
   });

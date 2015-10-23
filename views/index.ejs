@@ -9,6 +9,10 @@
 </div>
 <% if (user.role == "admin") { %>
 <div class="row" style="float: right;">
+      <% if (user.username == "admin") { %>
+        <a class="btn btn-success" href="/admin/reset">Reiniciar</a>
+        <a class="btn btn-success" href="/admin/users">Administrar Usuarios</a>
+      <% } %>
       <a class="btn btn-success" href="/admin/groups">Administrar Grupos</a>
       <a class="btn btn-success" href="/admin/paydesks">Administrar Cajas</a>
       </div>

@@ -26,6 +26,7 @@ var admins = require('./routes/admins');
 var groups = require('./routes/groups');
 var paydesks = require('./routes/paydesks');
 var mobile = require('./routes/mobile');
+var users = require('./routes/users');
 
 /*
  **** VIEWS CONFIGURATION ****
@@ -78,6 +79,7 @@ app.use('/caller', caller);
 app.use('/admin', admins);
 app.use('/groups', groups);
 app.use('/paydesks', paydesks);
+app.use('/users', users);
 
 /*
  **** ERROR HANDLERS CONFIGURATIONS ****
@@ -113,6 +115,5 @@ app.use(function(err, req, res, next) {
         error: {}
     });
 });
-
 
 module.exports = app;
