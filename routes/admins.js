@@ -36,7 +36,7 @@ router.get('/users', function(req, res) {
 });
 
 router.get('/reset', function(req, res) {
-  Group.update({},{ $set: { confirmed_times: 0, confirmed_clients: 0 }}).exec(function(err) {
+  Group.update({},{ $set: { confirmed_times: 0, confirmed_clients: 0 }},{ multi: true }).exec(function(err) {
     res.redirect("/");
   });
 });

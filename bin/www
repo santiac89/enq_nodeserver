@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var debug = require('debug')('enq');
 app = require('../app');
-var exec = require('child_process').exec;
+var fork = require('child_process').fork;
 var PaydeskBus = require('../util/paydesk_bus');
 var mongoose = require('mongoose');///
 var Io = require('socket.io');
@@ -12,8 +12,8 @@ app.set('port', 8080);
 	// if (cluster.isMaster) {
 
 
-		var child = exec('node ./util/service_broadcaster.js '+ app.get('port'));
-		child.stdout.on('data', function(data) { console.log(data); });
+		var child = fork('./util/service_broadcaster.js', [app.get('port')]);
+		child.on('message', function(data) { console.log(data); });
 
 		process.on('SIGINT', function() {
 			mongoose.connection.close(function () {

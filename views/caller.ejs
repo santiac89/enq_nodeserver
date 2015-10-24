@@ -64,10 +64,28 @@
   </div>
 
   <div class="row" style="text-align: center; margin-top: 15px;">
-    <a href="#"  id="call_button" class="btn btn-success" ng-click="callNext()">Llamar próximo</a>
+    <a href="#"  id="call_button" class="btn btn-primary" ng-click="callNext()">Llamar próximo</a>
   </div>
 
+  <div class="modal fade" id="timeoutModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title">Esperando por el cliente...</h4>
+        </div>
+        <div class="modal-body">
+          <p id="timeout"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+        </div>
+      </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+  </div><!-- /.modal -->
+
 </div>
+
 
 <script type='text/javascript' src='/javascripts/socket.io.js'></script>
 <script>
@@ -107,6 +125,7 @@
 
               case 'confirmed':
                 $scope.current_client.response = "Confirmado";
+                $("#call_button").removeAttr("disabled");
                 $scope.startArrivalTimeout(<%= group.paydesk_arrival_timeout %>);
               break;
 
@@ -190,14 +209,14 @@
 
       $scope.startArrivalTimeout = function(seconds, callback) {
         var count = seconds;
+          $('#timeoutModal').modal();
           $scope.confirmed_interval_id = setInterval(function() {
 
-            $("#call_button").html("Esperando por el cliente... " + count--);
+            $("#timeout").html(count--);
 
             if (count == 0) {
               clearInterval($scope.confirmed_interval_id);
-              $("#call_button").html("Llamar próximo");
-              $("#call_button").removeAttr("disabled");
+              $('#timeoutModal').hide();
             }
 
           }, 1000);

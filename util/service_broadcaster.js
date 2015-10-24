@@ -25,7 +25,6 @@ client.on("listening", function () {
 
   setInterval(function() {
   	client.send(message, 0, message.length, broadcast_port, broadcast_address);
-
   } , 20000);
 
 });
