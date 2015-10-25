@@ -73,6 +73,20 @@ router.get('/:id', function(req, res) {
 
 });
 
+router.get('/:id/group', function(req, res) {
+
+  Group.findByPaydesk(req.params.id).exec(function(err,group) {
+
+    if (!group) {
+      res.json(404,err);
+      return;
+    }
+
+    res.json(group);
+
+  })
+});
+
 router.get('/:id/clients/next', function(req, res) {
 
   Group.findByPaydesk(req.params.id).exec(function(err,group) {

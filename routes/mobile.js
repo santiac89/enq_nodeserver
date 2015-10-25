@@ -4,7 +4,7 @@ var number_generator = require('../util/local_number_generator');
 var Group = require('../models/group');
 
 router.get('/groups', function(req, res) {
-  Group.find({ paydesks_count: { $gt: 0 } } ,function(err,groups) {
+  Group.find( { paydesks: { $elemMatch: { active: true  } } } ,function(err,groups) {
      res.json(groups);
   });
 });

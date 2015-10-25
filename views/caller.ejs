@@ -8,7 +8,6 @@
     <h3>Tipo de atención: <span class="green" style="font-size: 25px; "><%= group.name %></span></h3>
   </div>
 
-
   <div class="row">
     <div class="col-md-6">
         <h3>Cliente en atención</h3>
@@ -64,21 +63,20 @@
   </div>
 
   <div class="row" style="text-align: center; margin-top: 15px;">
-    <a href="#"  id="call_button" class="btn btn-primary" ng-click="callNext()">Llamar próximo</a>
+    <a href="#"  id="call_button" class="btn btn-success" ng-click="callNext()">Llamar próximo</a>
   </div>
 
-  <div class="modal fade" id="timeoutModal">
-    <div class="modal-dialog">
+  <div class="modal fade" id="timeoutModal" data-backdrop="static">
+    <div class="modal-dialog modal-sm">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           <h4 class="modal-title">Esperando por el cliente...</h4>
         </div>
-        <div class="modal-body">
-          <p id="timeout"></p>
+        <div class="modal-body" style="text-align: center; font-size: 20px;">
+          <p id="timeout" class="green"></p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal">Cancelar</button>
         </div>
       </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
@@ -86,11 +84,8 @@
 
 </div>
 
-
 <script type='text/javascript' src='/javascripts/socket.io.js'></script>
 <script>
-
-
 
   var app = angular.module('Caller', []);
   app.controller('callerController', function($scope,$http) {
@@ -148,7 +143,6 @@
            $scope.$apply();
 
         });
-
       }
 
       $scope.reloadStatus = function() {
@@ -188,8 +182,8 @@
 
       $scope.formatTimestamp = function(timestamp) {
         var date = new Date(timestamp);
-        var hours = (date.getHours().length == 1 ? "0" :"") + date.getHours();
-        var minutes = (date.getMinutes().length == 1 ? "0" :"") + date.getMinutes();
+        var hours = (date.getHours().toString().length == 1 ? "0" : "") + date.getHours();
+        var minutes = (date.getMinutes().toString().length == 1 ? "0" : "") + date.getMinutes();
 
         return timestamp == undefined ? '' : hours+':'+minutes;
       }
@@ -209,21 +203,39 @@
 
       $scope.startArrivalTimeout = function(seconds, callback) {
         var count = seconds;
-          $('#timeoutModal').modal();
-          $scope.confirmed_interval_id = setInterval(function() {
+        $('#timeoutModal').modal();
+        $scope.confirmed_interval_id = setInterval(function() {
 
-            $("#timeout").html(count--);
+          $("#timeout").html(count--);
 
-            if (count == 0) {
-              clearInterval($scope.confirmed_interval_id);
-              $('#timeoutModal').hide();
-            }
+          if (count == 0) {
+            clearInterval($scope.confirmed_interval_id);
+            $('#timeoutModal').hide();
+          }
 
-          }, 1000);
+        }, 1000);
       }
+
+      $scope.alertLackOfPaydesksInGroup = function() {
+
+          var response = false;
+
+          $.ajax({ url: "/caller/<%= paydesk._id %>/group", async: false ,
+            success: function(group) {
+
+              var count = group.paydesks.filter(paydesk => { return paydesk.active }).length
+
+              if (count == 1) {
+                response =  "Atención! Esta es la última caja activa en el grupo. Si la cierra, el grupo no estará disponible para los clientes. Desea continuar?";
+              }
+            }
+          });
+
+          return response;
+      }
+
+      window.onbeforeunload = $scope.alertLackOfPaydesksInGroup;
 
   });
 
 </script>
-
-
