@@ -2,9 +2,11 @@ var dgram = require('dgram');
 var client = dgram.createSocket("udp4");
 var config = require('../config.js');
 var network = require('../util/network');
+var net = require('net');
 
 var broadcast_address = network.broadcast();
-var broadcast_port = config.broadcast_port;
+var broadcast_port = config.service_discovery.broadcast_listen_port;
+var client_port = config.service_discovery.client_announce_port;
 
 var service_info = {
   address: network.address(),
@@ -14,17 +16,32 @@ var service_info = {
   call_timeout: (config.call_timeout * 1000)
 };
 
-client.bind();
+client.bind(broadcast_port, broadcast_address);
 
 client.on("listening", function () {
-
-  var message = new Buffer(JSON.stringify(service_info));
+  console.log("Waiting for client query on "+broadcast_address+":"+broadcast_port);
   client.setBroadcast(true);
+});
 
-  console.log('Sending server info ' + message + ' to port ' + broadcast_port );
+client.on("message", function(message, rinfo) {
 
-  setInterval(function() {
-  	client.send(message, 0, message.length, broadcast_port, broadcast_address);
-  } , 20000);
+  if (message.toString() != "whereareyou?") return;
+
+  var response = new Buffer(JSON.stringify(service_info) + "\n");
+
+  net.createConnection(client_port, rinfo.address, function() {
+
+    var socket = this;
+
+    this.on('timeout', function() {
+      socket.end();
+    });
+
+    this.on('error' ,function() {
+      socket.end();
+    });
+
+    this.write(response, 'UTF-8', function(err) { socket.end(); });
+  });
 
 });

@@ -143,6 +143,10 @@
            $scope.$apply();
 
         });
+
+        setInterval(function() {
+          $scope.socket.emit('paydesk_keepalive', { paydesk_id: "<%= paydesk._id %>" });
+        }, 15000);
       }
 
       $scope.reloadStatus = function() {
@@ -152,7 +156,6 @@
         $scope.called_client =  JSON.parse("<%= JSON.stringify(called_client) %>".replace(/&quot;/g, '"'));
 
         if ($scope.current_client.remain_to_arrive > 0) {
-           $("#call_button").attr("disabled","disabled");
            $scope.startArrivalTimeout($scope.current_client.remain_to_arrive);
         }
 
@@ -190,6 +193,7 @@
 
       $scope.startCallResponseTimeout = function(seconds) {
         var count =  seconds;
+        $scope.called_client.response = "Esperando respuesta... " + --count;
           $scope.call_interval_id = setInterval(function() {
             $scope.called_client.response = "Esperando respuesta... " + count--;
             $scope.$apply();
@@ -204,13 +208,14 @@
       $scope.startArrivalTimeout = function(seconds, callback) {
         var count = seconds;
         $('#timeoutModal').modal();
+        $("#timeout").html(--count);
         $scope.confirmed_interval_id = setInterval(function() {
 
           $("#timeout").html(count--);
 
           if (count == 0) {
             clearInterval($scope.confirmed_interval_id);
-            $('#timeoutModal').hide();
+            $('#timeoutModal').modal('hide');
           }
 
         }, 1000);

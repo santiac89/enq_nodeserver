@@ -20,7 +20,7 @@ router.delete('/clients/:id', function(req, res) {
       return;
     }
 
-    if (req.connection.remoteAddress.replace('::ffff:','') != group.clients.id(req.params.id).ip) {
+    if (req.connection.remoteAddress != group.clients.id(req.params.id).ip) {
       res.json(401,{});
       return;
     }
@@ -45,7 +45,7 @@ router.post('/groups/:id/clients', function(req, res) {
     }
 
     var new_client = {
-      ip: req.body.ip,
+      ip: req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress,
       hmac: req.body.hmac
     }
 

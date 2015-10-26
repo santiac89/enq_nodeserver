@@ -46,6 +46,7 @@ var io = Io(server);
 io.on('connection', function(socket) {
 
   var paydesk_id;
+  var timeout_id;
 
   var client_response_callback = function(res) {
 	  socket.emit('client_response', res);
@@ -55,22 +56,48 @@ io.on('connection', function(socket) {
 
 		paydesk_id = data.paydesk_id;
 
-		Group.findByPaydesk(data.paydesk_id).exec(function(err, group) {
-			group.paydesks.id(data.paydesk_id).active = true;
-			group.save();
-		});
+		enablePaydesk(paydesk_id);
+
+		timeout_id = setTimeout(function() {
+			PaydeskBus.remove('client_response', client_response_callback);
+			disablePaydesk(paydesk_id);
+		},20000);
+
 	});
 
-	socket.once('disconnect', function () {
+	socket.on('paydesk_keepalive', function(data) {
+		console.log('HB');
+			clearTimeout(timeout_id);
+			timeout_id = setTimeout(function() {
+				PaydeskBus.remove('client_response', client_response_callback);
+				disablePaydesk(paydesk_id);
+			},20000);
+	});
 
+	socket.once('disconnect', function() {
 		PaydeskBus.remove('client_response', client_response_callback);
-
-		Group.findByPaydesk(paydesk_id).exec(function(err, group) {
-			group.paydesks.id(paydesk_id).active = false;
-			group.save();
-		});
+		disablePaydesk(paydesk_id);
 	});
 
 	PaydeskBus.on('client_response', client_response_callback);
 
 });
+
+
+
+function disablePaydesk(paydesk_id) {
+
+	Group.findByPaydesk(paydesk_id).exec(function(err, group) {
+		group.paydesks.id(paydesk_id).active = false;
+		group.save();
+	});
+}
+
+function enablePaydesk(paydesk_id) {
+
+	Group.findByPaydesk(paydesk_id).exec(function(err, group) {
+			group.paydesks.id(paydesk_id).active = true;
+			group.save();
+		});
+
+}

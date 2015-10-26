@@ -52,8 +52,6 @@ var ClientCaller = function(group, paydesk, client) {
 
       paydesk.called_client = [];
 
-      console.log(response.toString());
-
       if (response.toString() == "confirm") {
         this.OnClientConfirm(group, paydesk, client);
       } else if (response.toString() == "cancel") {

@@ -1,7 +1,9 @@
 var config = {};
 
 config.server_name = "DevEnqServer";
-config.broadcast_port = 6000;
+config.service_discovery = {};
+config.service_discovery.broadcast_listen_port = 6000;
+config.service_discovery.client_announce_port = 6001;
 config.mongo = {};
 config.mongo.address = "localhost";
 config.mongo.port = 27017;
