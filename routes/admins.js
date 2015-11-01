@@ -36,7 +36,17 @@ router.get('/users', function(req, res) {
 });
 
 router.get('/reset', function(req, res) {
-  Group.update({},{ $set: { confirmed_times: 0, confirmed_clients: 0 }},{ multi: true }).exec(function(err) {
+  Group.find({}).exec(function(err, groups) {
+
+    groups.forEach((group) => {
+      group.confirmed_clients = group.confirmed_times = 0;
+      group.paydesks.forEach((paydesk) => {
+        paydesk.called_client = paydesk.current_client = [];
+      });
+      group.clients = [];
+      group.save();
+    });
+
     res.redirect("/");
   });
 });

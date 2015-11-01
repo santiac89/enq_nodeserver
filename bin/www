@@ -61,7 +61,7 @@ io.on('connection', function(socket) {
 		clearTimeout(timeout_id);
 		timeout_id = setTimeout(function() {
 			disablePaydesk(paydesk_id, client_response_callback);
-		},20000);
+		},25000);
 	});
 
 	socket.once('disconnect', function() {

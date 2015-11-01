@@ -124,7 +124,7 @@ router.get('/:id/clients/next', function(req, res) {
       return;
     };
 
-    ClientCaller(group._id, paydesk._id, next_client._id).Call();
+    ClientCaller(group._id, paydesk._id, next_client._id, res).Call();
 
     res.json(next_client);
 

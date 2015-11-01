@@ -111,32 +111,51 @@
 
           if (data.paydesk_number != <%= paydesk.number %>) return;
 
-          clearInterval($scope.call_interval_id);
-
-          $scope.current_client = $scope.called_client;
-          $scope.called_client = {};
-
           switch (data.message) {
 
+              case 'call_received':
+                $scope.startCallResponseTimeout(<%= call_timeout %>);
+              break;
+
               case 'confirmed':
-                $scope.current_client.response = "Confirmado";
                 $("#call_button").removeAttr("disabled");
+                $scope.current_client = $scope.called_client;
+                $scope.called_client = {};
+                $scope.current_client.response = "Confirmado";
+                clearInterval($scope.call_interval_id);
                 $scope.startArrivalTimeout(<%= group.paydesk_arrival_timeout %>);
               break;
 
               case 'error':
-                $scope.current_client.response = "ERROR";
                 $("#call_button").removeAttr("disabled");
+                $scope.current_client = $scope.called_client;
+                $scope.called_client = {};
+                $scope.current_client.response = "Cliente no disponible.";
+                clearInterval($scope.call_interval_id);
               break;
 
               case 'cancelled':
-                $scope.current_client.response = "Cancelado";
                 $("#call_button").removeAttr("disabled");
+                $scope.current_client = $scope.called_client;
+                $scope.called_client = {};
+                $scope.current_client.response = "Cancelado";
+                clearInterval($scope.call_interval_id);
+              break;
+
+              case 'queue_limit_reached':
+                $("#call_button").removeAttr("disabled");
+                $scope.current_client = $scope.called_client;
+                $scope.called_client = {};
+                $scope.current_client.response = "Cliente no disponible.";
+                clearInterval($scope.call_interval_id);
               break;
 
               default:
-                $scope.current_client.response = "Reencolado";
                 $("#call_button").removeAttr("disabled");
+                $scope.current_client = $scope.called_client;
+                $scope.called_client = {};
+                $scope.current_client.response = "Reencolado";
+                clearInterval($scope.call_interval_id);
               break;
            }
 
@@ -146,7 +165,7 @@
 
         setInterval(function() {
           $scope.socket.emit('paydesk_keepalive', { paydesk_id: "<%= paydesk._id %>" });
-        }, 15000);
+        }, 10000);
       }
 
       $scope.reloadStatus = function() {
@@ -173,9 +192,9 @@
 
             $("#call_button").attr("disabled","disabled");
 
+            // $scope.called_client = next_client;
+            // $scope.startCallResponseTimeout(<%= call_timeout %>);
             $scope.called_client = next_client;
-            $scope.startCallResponseTimeout(<%= call_timeout %>);
-
 
           }).error(function() {
               $scope.called_client.number = "No hay mas clientes.";
