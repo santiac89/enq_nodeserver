@@ -14,23 +14,6 @@ router.use(function(req, res, next) {
   next();
 })
 
-User.findOne({ username: "admin" }).exec(function(err, user) {
-
-  if (!user) {
-    User.register(new User({ username: "admin" }), config.admin.password, function(err, user) {
-      console.log("Admin user created!");
-    });
-    return;
-  }
-
-  user.setPassword(config.admin.password, function() {
-    user.save(function(err) {
-      console.log("Admin user updated!");
-    });
-  });
-
-});
-
 router.get('/', function(req, res) {
   User.find({},'_id username role').exec(function(err, users) {
     res.json(users);

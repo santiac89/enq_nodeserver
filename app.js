@@ -13,9 +13,10 @@ require('./util/prototypes');
 var mongoose = require('mongoose');
 var config = require('./config.js');
 var engine = require('ejs-locals');
-var transaction_logger = require('./util/transaction_logger');
+// var transaction_logger = require('./util/transaction_logger');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
+var MongoSessionStore = require('connect-mongo')(session);
 
 /*
  **** ROUTES INCLUDES *****
@@ -44,13 +45,13 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
-app.use(require('express-session')({
+app.use(session({
     secret: 'keyboard cat',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    store: new MongoSessionStore({ mongooseConnection: mongoose.connection })
 }));
 app.use(express.static(path.join(__dirname, 'public')));
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -58,6 +59,23 @@ var User = require('./models/user');
 passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
+
+User.findOne({ username: "admin" }).exec(function(err, user) {
+
+  if (!user) {
+    User.register(new User({ username: "admin" }), config.admin.password, function(err, user) {
+      console.log("Admin user created!");
+    });
+    return;
+  }
+
+  user.setPassword(config.admin.password, function() {
+    user.save(function(err) {
+      console.log("Admin user updated!");
+    });
+  });
+
+});
 
 /*
  ***** ROUTES *******

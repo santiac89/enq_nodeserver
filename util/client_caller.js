@@ -27,6 +27,7 @@ var ClientCaller = function(group, paydesk, client) {
     });
   };
 
+  // TODO: MOVER TODO ESTO A ALGUNA ENTIDAD QUE MANEJE LAS RESPUESTAS
   this.OnSocketConnection = function(socket) {
 
     Group.findByClient(this.client).exec((err, group) => {

@@ -69,6 +69,21 @@ groupSchema.plugin(uniqueValidator);
 
 var Group = mongoose.model('Group', groupSchema);
 
+Group.reset = function() {
+  this.find({}).exec(function(err, groups) {
+
+    groups.forEach((group) => {
+      group.confirmed_clients = group.confirmed_times = 0;
+      group.paydesks.forEach((paydesk) => {
+        paydesk.called_client = paydesk.current_client = [];
+      });
+      group.clients = [];
+      group.save();
+    });
+  });
+}
+
+
 Group.findByPaydesk = function(id) {
     return this.findOne({ paydesks: { $elemMatch: { _id: id } }});
 };

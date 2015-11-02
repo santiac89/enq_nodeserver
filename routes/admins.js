@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Group = require('../models/group');
 var User = require('../models/user');
+var Counter = require('../models/counter');
 
 router.get('/groups', function(req, res) {
   Group.find().exec(function(err,groups) {
@@ -36,19 +37,9 @@ router.get('/users', function(req, res) {
 });
 
 router.get('/reset', function(req, res) {
-  Group.find({}).exec(function(err, groups) {
-
-    groups.forEach((group) => {
-      group.confirmed_clients = group.confirmed_times = 0;
-      group.paydesks.forEach((paydesk) => {
-        paydesk.called_client = paydesk.current_client = [];
-      });
-      group.clients = [];
-      group.save();
-    });
-
-    res.redirect("/");
-  });
+  Counter.reset();
+  Group.reset();
+  res.redirect("/");
 });
 
 module.exports = router;

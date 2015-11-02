@@ -7,30 +7,19 @@ var mongoose = require('mongoose');///
 var Io = require('socket.io');
 var config = require('../config');
 var Group = require('../models/group');
+var Counter = require('../models/counter');
 
-app.set('port', 8080);
-	// if (cluster.isMaster) {
+app.set('port', config.server_port);
 
+var child = fork('./util/service_broadcaster.js', [config.server_port]);
+child.on('message', function(data) { console.log(data); });
 
-		var child = fork('./util/service_broadcaster.js', [app.get('port')]);
-		child.on('message', function(data) { console.log(data); });
-
-		process.on('SIGINT', function() {
-			mongoose.connection.close(function () {
-		    child.kill();
-		    process.exit(0);
-		  });
-		});
-		// Count the machine's CPUs
-	 // 	var cpuCount = require('os').cpus().length;
-
-		// // Create a worker for each CPU
-		// for (var i = 0; i < cpuCount; i += 1) {
-		// 	cluster.fork();
-		// }
-
-	// Code to run if we're in a worker process
-	// } else {
+process.on('SIGINT', function() {
+	mongoose.connection.close(function () {
+    child.kill();
+    process.exit(0);
+  });
+});
 
 /*
 **** THIRD-PARTY CONFIGURATIONS ****
@@ -38,34 +27,42 @@ app.set('port', 8080);
 mongoose.connect('mongodb://'+config.mongo.address+':'+config.mongo.port+'/'+config.mongo.db);
 
 var server = app.listen(app.get('port'), function() {
+
 	console.log('Express server listening on port ' + server.address().port);
-});
 
-var io = Io(server);
+	Group.reset();
+	Counter.reset();
+/*
+* TODO: MOVER TODO ESTO
+	PAYDESKS WEBSOCKETS CONFIGURATION
+*/
+	var io = Io(server);
 
-io.on('connection', function(socket) {
+	io.on('connection', function(socket) {
 
-  var paydesk_id, timeout_id, client_response_callback = function(res) {
-	  socket.emit('client_response', res);
-	};
+	  var paydesk_id, timeout_id, client_response_callback = function(res) {
+		  socket.emit('client_response', res);
+		};
 
-	socket.once('paydesk_connection', function(data) {
-		paydesk_id = data.paydesk_id;
-		enablePaydesk(paydesk_id, client_response_callback);
-		timeout_id = setTimeout(function() {
+		socket.once('paydesk_connection', function(data) {
+			paydesk_id = data.paydesk_id;
+			enablePaydesk(paydesk_id, client_response_callback);
+			timeout_id = setTimeout(function() {
+				disablePaydesk(paydesk_id, client_response_callback);
+			},20000);
+		});
+
+		socket.on('paydesk_keepalive', function(data) {
+			clearTimeout(timeout_id);
+			timeout_id = setTimeout(function() {
+				disablePaydesk(paydesk_id, client_response_callback);
+			},25000);
+		});
+
+		socket.once('disconnect', function() {
 			disablePaydesk(paydesk_id, client_response_callback);
-		},20000);
-	});
+		});
 
-	socket.on('paydesk_keepalive', function(data) {
-		clearTimeout(timeout_id);
-		timeout_id = setTimeout(function() {
-			disablePaydesk(paydesk_id, client_response_callback);
-		},25000);
-	});
-
-	socket.once('disconnect', function() {
-		disablePaydesk(paydesk_id, client_response_callback);
 	});
 
 });
