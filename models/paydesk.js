@@ -2,7 +2,7 @@ var mongoose = require('mongoose')
 var clientSchema = require('./client');
 var Schema = mongoose.Schema;
 
-var paydeskSchema = mongoose.Schema({
+var paydeskSchema = Schema({
 
   number: { type: Number, required: true },
   current_client:  [clientSchema],

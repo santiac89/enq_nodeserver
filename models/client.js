@@ -13,7 +13,7 @@ var clientSchema = mongoose.Schema({
   errored_time: { type: Number, default: 0 },
   confirmed_time: { type: Number, default: 0 },
   status: { type: String, default: "idle" },
-  called_by: Number
+  assigned_to: Number
 });
 
 clientSchema.methods.setReenqueued = function(reason) {

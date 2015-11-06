@@ -17,6 +17,7 @@ router.get('/:id', function(req, res) {
     var current_client = {};
     var called_client = {};
 
+    // TODO: Mover esta logica
     if (paydesk.current_client.length > 0) {
 
       current_client.number = paydesk.current_client[0].number;
@@ -89,46 +90,80 @@ router.get('/:id/group', function(req, res) {
 
 router.get('/:id/clients/next', function(req, res) {
 
-  Group.findByPaydesk(req.params.id).exec(function(err,group) {
+  // TODO: Esto deberia ser todo en un solo momento para que si otra caja pide un cliente no
+  // conflictue con esto.
 
-    if (!group) {
-      res.json(404,err);
-      return;
+  Group.getPaydeskNextClient(req.params.id,
+    {
+      success: function(next_client) {
+        ClientCaller(next_client).Call();
+        res.json(next_client);
+      },
+      error: function(err, paydesk) {
+        res.json(404, err);
+      }
     }
+  );
 
-    paydesk = group.paydesks.id(req.params.id);
+  // Group.getPaydeskNextClient(req.params.id).exec(function(err, clients) {
 
-    if (paydesk.current_client.length == 1) {
+  //   next_client = clients[0];
 
-      group.confirmed_clients++;
-      group.confirmed_times += Date.now() - paydesk.current_client[0].confirmed_time;
+  //   if (!next_client) {
+  //     res.json(404,err);
+  //     return;
+  //   }
 
-      paydesk.current_client[0].saveToHistory();
-      paydesk.current_client[0].remove();
+  //   Group.updateClientStatus(next_client._id, "calling").exec(function() {
+  //     ClientCaller(next_client).Call();
+  //   });
 
-      group.save();
+  //   res.json(next_client);
 
-    }
+  // });
 
-    if (paydesk.called_client.length == 1) {
-      if (!next_client) {
-        res.json(404, {});
-        return;
-      };
-    }
 
-    var next_client = group.getNextClient();
+  // Group.findByPaydesk(req.params.id).exec(function(err,group) {
 
-    if (!next_client) {
-      res.json(404, {});
-      return;
-    };
+  //   if (!group) {
+  //     res.json(404,err);
+  //     return;
+  //   }
 
-    ClientCaller(group._id, paydesk._id, next_client._id, res).Call();
+  //   paydesk = group.paydesks.id(req.params.id);
 
-    res.json(next_client);
+  //   //Move this to confirm
+  //   if (paydesk.current_client.length == 1) {
 
-  });
+  //     group.confirmed_clients++;
+  //     group.confirmed_times += Date.now() - paydesk.current_client[0].confirmed_time;
+
+  //     paydesk.current_client[0].saveToHistory();
+  //     paydesk.current_client[0].remove();
+
+  //     group.save();
+
+  //   }
+
+  //   // if (paydesk.called_client.length == 1) {
+  //   //   if (!next_client) {
+  //   //     res.json(404, {});
+  //   //     return;
+  //   //   };
+  //   // }
+
+  //   // var next_client = group.getNextClient();
+
+  //   // if (!next_client) {
+  //   //   res.json(404, {});
+  //   //   return;
+  //   // };
+
+  //   ClientCaller(group._id, paydesk._id, next_client._id, res).Call();
+
+  //   res.json(next_client);
+
+  // });
 });
 
 module.exports = router;

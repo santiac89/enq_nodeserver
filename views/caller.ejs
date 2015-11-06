@@ -104,12 +104,12 @@
         $scope.socket = io('http://'+window.location.host);
 
         $scope.socket.on('connect', function() {
-          $scope.socket.emit('paydesk_connection', { paydesk_id: "<%= paydesk._id %>" });
+          $scope.socket.emit('hello', { paydesk_id: "<%= paydesk._id %>", paydesk_number: "<%= paydesk.number %>" });
         });
 
         $scope.socket.on('client_response', function (data) {
 
-          if (data.paydesk_number != <%= paydesk.number %>) return;
+          // if (data.paydesk_number != <%= paydesk.number %>) return;
 
           switch (data.message) {
 
