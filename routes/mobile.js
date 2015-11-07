@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var number_generator = require('../util/local_number_generator');
 var Group = require('../models/group');
+var Client = require('../models/client');
 var Counters = require('../models/counter');
 
 router.get('/groups', function(req, res) {
@@ -12,27 +13,15 @@ router.get('/groups', function(req, res) {
 
 router.delete('/clients/:id', function(req, res) {
 
-  Group
-  .findOne({ clients: { $elemMatch: { _id: req.params.id } } })
-  .exec(function(err,group) {
-
-    if (!group) {
-      res.json(404,{});
-      return;
-    }
-
-    if (req.connection.remoteAddress != group.clients.id(req.params.id).ip) {
-      res.json(401,{});
-      return;
-    }
-
-    var client = group.clients.id(req.params.id);
-    client.saveToHistory();
-    client.remove();
-    group.save();
-
-    res.json(client);
-
+  Group.findAndRemoveClientByIp(req.params.id, req.connection.remoteAddress, {
+      success: (client) => {
+        client.saveToHistory();
+        res.json(client);
+      },
+      error: (err) => {
+        res.json(404,{});
+        return;
+      }
   });
 
 });
@@ -55,28 +44,25 @@ router.post('/groups/:id/clients', function(req, res) {
       return;
     }
 
-
     Counters.getNextSequence("number", function(err, counter) {
-        new_client.enqueue_time = Date.now();
-        new_client.number = counter.seq;
 
-        group.clients.push(new_client);
+      new_client.enqueue_time = Date.now();
+      new_client.number = counter.seq;
 
-        group.save(function(err,group) {
-
-          if (err) {
-            res.json(500,err);
-            return;
-          }
-
+      Group.addNewClient(group._id, new_client, {
+        success: (client) => {
           res.json({
-            client_number: group.clients[group.clients.length - 1].number,
-            client_id:  group.clients[group.clients.length - 1]._id,
+            client_number: client.number,
+            client_id:  client._id,
             paydesk_arrival_timeout: group.paydesk_arrival_timeout,
             group_name: group.name
           });
-
-        });
+        },
+        error: (err) => {
+          res.json(500,err);
+          return;
+        }
+      });
     });
 
   });

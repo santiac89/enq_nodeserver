@@ -55,6 +55,7 @@ clientSchema.methods.hasReachedLimit = function() {
 clientSchema.methods.saveToHistory = function() {
   var historical = new ClientHistory();
   historical.restore(this.backup());
+  historical.removed_time = Date.now();
   historical.save();
   return historical;
 }

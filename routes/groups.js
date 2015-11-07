@@ -87,44 +87,4 @@ router.post('/:id/paydesks', function(req, res) {
   });
 });
 
-// router.post('/:id/clients', function(req, res) {
-//   Group.findOne({_id: req.params.id }, function(err,group) {
-
-//     if (!group) {
-//       res.json(404,err);
-//       return;
-//     }
-
-//     var new_client = {
-//       ip: req.body.ip,
-//       hmac: req.body.hmac
-//     }
-
-//     if (app.settings.env == 'production' && !group.clientIsUnique(new_client)) {
-//       res.json(500,{});
-//       return;
-//     }
-
-//     new_client.enqueue_time = Date.now();
-//     new_client.number = number_generator.get();
-
-//     group.clients.push(new_client);
-
-//     group.save(function(err,group) {
-
-//       if (err) {
-//         res.json(500,err);
-//         return;
-//       }
-
-//       res.json({
-//         client_number: group.clients[group.clients.length - 1].number,
-//         client_id:  group.clients[group.clients.length - 1]._id,
-//         paydesk_arrival_timeout: group.paydesk_arrival_timeout
-//       });
-
-//     });
-//   });
-// });
-
 module.exports = router;

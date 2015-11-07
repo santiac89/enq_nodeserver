@@ -34,8 +34,8 @@ var PaydeskBus = {
       socket.once('disconnect', () => {
         disconnected_socket = this.sockets_pool.findIndex((sock) => { return sock.id == socket.id });
         this.sockets_pool = this.sockets_pool.filter((sock) => { return sock.id != socket.id });
-        if (disconnected_socket) disconnected_socket.close();
         this.disablePaydesk(disconnected_socket.paydesk_id);
+        if (disconnected_socket) disconnected_socket.close();
       });
 
     });

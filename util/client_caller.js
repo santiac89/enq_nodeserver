@@ -2,6 +2,7 @@ var PaydeskBus = require('./paydesk_bus');
 var config = require('../config');
 var net = require('net');
 var Group = require('../models/group');
+var ClientManager = require('./client_manager');
 
 var ClientCaller = function(client) {
 
@@ -9,17 +10,16 @@ var ClientCaller = function(client) {
     return new ClientCaller(client);
 
   this.client = client;
-  // this.paydesk = paydesk;
-  // this.group = group;
+  this.manager = ClientManager(client);
 
   this.Call = () => {
     var self = this;
     var client_tcp_conn = net.createConnection(3131, this.client.ip, function() { self.OnSocketConnection(this); });
     client_tcp_conn.on('data', function(data) { self.OnSocketData(this, data); });
     client_tcp_conn.on('error', function(err) { self.OnSocketError(this , err); });
-    //client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
     client_tcp_conn.on('timeout', function() { self.OnSocketTimeout(this); });
     client_tcp_conn.on('close', function(had_error) { self.OnSocketClose(this, had_error); });
+    //client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
   };
 
   // TODO: MOVER TODO ESTO A ALGUNA ENTIDAD QUE MANEJE LAS RESPUESTAS
@@ -38,99 +38,26 @@ var ClientCaller = function(client) {
   };
 
   this.OnSocketData = function(socket, response) {
-    // Group.findByClient(this.client).exec((err, group) => {
 
-    //   if (!group) return;
+    socket.end();
 
-    //   var client = group.clients.id(this.client);
-    //   var paydesk = group.paydesks.id(this.paydesk);
-
-      if (response.toString() == "call_received") {
-        this.OnClientCalled();
-        socket.end();
-      } else if (response.toString() == "confirm") {
-        this.OnClientConfirm();
-        socket.end();
-      } else if (response.toString() == "cancel") {
-        this.OnClientCancel();
-        socket.end();
-      } else if (response.toString() == "extend") {
-        this.OnClientReenqueue("extend");
-        socket.end();
-      }
-
-    // });
-  };
-
-  this.OnClientCalled = function() {
-    console.log("["+Date.now()+"] CLIENT " + this.client.number + " HELLO!");
-
-    Group.updateClient(this.client._id, { status: "called", called_time: Date.now() }, (err) => {
-    // client.setCalledBy(this.paydesk.number);
-    // paydesk.called_client = client;
-    // group.save((err) => {
-      PaydeskBus.send(this.client.assigned_to, "call_received");
-    });
-  }
-
-  this.OnClientConfirm = function() {
-
-    // Group.confirmClient(client)
-    console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [confirm]");
-
-    Group.updateClient(this.client._id, { status: "called", called_time: Date.now() }, (err) => {
-      // TODO: GET AND REMOVE CLIENT
-      PaydeskBus.send(this.client.assigned_to, 'confirmed');
-    });
-    // paydesk.called_client = [];
-    // client.setConfirmed();
-    // client.remove();
-    // paydesk.current_client = client;
-    // group.save((err) => {
-      // PaydeskBus.send(paydesk.number, 'confirmed');
-    // });
-  }
-
-  this.OnClientCancel = function() {
-
-    console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [cancel]");
-
-    Group.updateClient(this.client._id, { status: "called", called_time: Date.now() }, (err) => {
-      // TODO: GET AND REMOVE CLIENT
-      PaydeskBus.send(this.client.assigned_to, 'confirmed');
-    });
-
-    paydesk.called_client = [];
-    client.setCancelled();
-    client.saveToHistory();
-    client.remove();
-
-    group.save((err) => {
-      PaydeskBus.send(this.client.assigned_to, 'cancelled');
-    });
-  };
-
-  this.OnClientReenqueue = function(reason) {
-    console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [reenqueue="+ reason +"]");
-    client.setReenqueued(reason);
-    paydesk.called_client = [];
-
-    if (client.hasReachedLimit()) {
-      // TODO: GET AND REMOVE CLIENT
-      client.saveToHistory();
-      client.remove();
-      group.save((err) => {
-        console.log("["+Date.now()+"] CLIENT " + this.client.number + " REACHED LIMIT");
-        PaydeskBus.send(this.client.assigned_to, 'queue_limit_reached');
-      });
-    } else {
-      // TODO: UPDATE,GET AND REENQUEUE CLIENT
-      group.reenqueueClient(client);
-      group.save((err) => {
-        PaydeskBus.send(this.client.assigned_to, reason);
-      });
+    switch (response.toString()) {
+      case "call_received":
+        this.manager.OnClientCalled();
+      break;
+      case "confirm":
+        this.manager.OnClientConfirm();
+      break;
+      case "cancel":
+        this.manager.OnClientCancel();
+      break;
+      case "extend":
+        this.manager.OnClientReenqueue("extend");
+      break;
     }
-  }
+
+
+  };
 
   this.OnSocketClose = function(socket, had_error) {
     console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " CLOSED " + (had_error ? "WITH ERROR" : ""));
@@ -140,63 +67,57 @@ var ClientCaller = function(client) {
   }
 
   this.OnSocketTimeout = function(socket) {
-    console.log("["+Date.now()+"] SERVER SOCKET" + this.client.number + " TIMEOUT");
-
-    Group.findByClient(this.client).exec((err, group) => {
-
-      if (!group) return;
-
-      var client = group.clients.id(this.client);
-      var paydesk = group.paydesks.id(this.paydesk);
-
-      paydesk.called_client = [];
-      group.save((err) => {
-        this.OnClientReenqueue(group, paydesk, client, "response_timeout");
-      });
-
-      socket.end();
-
-    });
+    console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " TIMEOUT");
+    socket.end();
+    this.manager.OnClientReenqueue("response_timeout");
   };
 
-  this.OnSocketEnd = function(socket) {
-    console.log("["+Date.now()+"] CLIENT SOCKET " + this.client.number + " CLOSED");
+  // this.OnSocketEnd = function(socket) {
+  //   console.log("["+Date.now()+"] CLIENT SOCKET " + this.client.number + " CLOSED");
 
-    Group.findByClient(this.client).exec((err, group) => {
+    // Group.findByClient(this.client).exec((err, group) => {
 
-      if (!group) return;
+    //   if (!group) return;
 
-      var client = group.clients.id(this.client);
-      var paydesk = group.paydesks.id(this.paydesk);
+    //   var client = group.clients.id(this.client);
+    //   var paydesk = group.paydesks.id(this.paydesk);
 
-      paydesk.called_client = [];
-      client.setCancelled();
-      client.saveToHistory();
-      client.remove();
-      group.save((err) => {
-        PaydeskBus.send(this.client.assigned_to, 'cancelled');
-      });
-    });
-  };
+    //   paydesk.called_client = [];
+    //   client.setCancelled();
+    //   client.saveToHistory();
+    //   client.remove();
+    //   group.save((err) => {
+    //     PaydeskBus.send(this.client.assigned_to, 'cancelled');
+    //   });
+    // });
+  // };
 
   this.OnSocketError = function(socket, err) {
     console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " ERROR");
+    Group.findAndUpdateClient(this.client._id,
+      { status: "error", errored_time: Date.now() },
+      {
+        success: (client) => {
 
-    Group.findByClient(this.client).exec((err, group) => {
+          Group.findAndRemoveClient(this.client._id, {
 
-      if (!group) return;
+            success: (client) => {
 
-      var client = group.clients.id(this.client);
-      var paydesk = group.paydesks.id(this.paydesk);
+              client.saveToHistory();
 
-      client.setErrored(err);
-      client.saveToHistory();
-      client.remove();
-      paydesk.called_client = [];
-      group.save((err) => {
-        PaydeskBus.send(this.client.assigned_to, "error");
-      });
-    });
+              Group.removePaydeskCalledClient(this.client.assigned_to, {
+                success: () => {
+                  PaydeskBus.send(this.client.assigned_to, "error");
+                }
+              });
+
+            }
+
+          });
+
+        }
+      }
+    );
   };
 
 };

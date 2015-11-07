@@ -32,10 +32,7 @@ var server = app.listen(app.get('port'), function() {
 
 	Group.reset();
 	Counter.reset();
-/*
-* TODO: MOVER TODO ESTO
-	PAYDESKS WEBSOCKETS CONFIGURATION
-*/
+
 	var io = Io(server);
 
 	PaydeskBus.init(io);

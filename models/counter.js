@@ -11,21 +11,19 @@ var counterSchema = Schema({
 var Counter = mongoose.model('Counter', counterSchema);
 
 Counter.getNextSequence = function(name, callback) {
-    this.findOneAndUpdate(
-      { _id: name },
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    ).exec(callback);
-
+  this.findOneAndUpdate(
+    { _id: name },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  ).exec(callback);
 };
 
 Counter.reset = function(name) {
-    this.findOneAndUpdate(
-      { _id: name },
-      { $set: { seq: 0 } },
-      { new: true, upsert: true }
-    ).exec();
-
+  this.findOneAndUpdate(
+    { _id: name },
+    { $set: { seq: 0 } },
+    { new: true, upsert: true }
+  ).exec();
 };
 
 module.exports = Counter;

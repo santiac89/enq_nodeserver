@@ -13,6 +13,7 @@ var clientHistorySchema = mongoose.Schema({
   confirmed_time: Number,
   status: { type: String },
   called_by: Number,
+  removed_time: Number,
   _errors: String
 });
 

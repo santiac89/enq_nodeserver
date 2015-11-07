@@ -13,7 +13,7 @@
     "cookie-parser": "~1.0.1",
     "body-parser": "~1.0.0",
     "debug": "~0.7.4",
-    "mongoose": "~4.0.5",
+    "mongoose": "~4.2.4",
     "mongoose-unique-validator": "~0.4.1",
     "ip": "~0.3.3",
     "winston" : "~1.0.1",

@@ -90,10 +90,7 @@ router.get('/:id/group', function(req, res) {
 
 router.get('/:id/clients/next', function(req, res) {
 
-  // TODO: Esto deberia ser todo en un solo momento para que si otra caja pide un cliente no
-  // conflictue con esto.
-
-  Group.getPaydeskNextClient(req.params.id,
+  Group.findPaydeskNextClient(req.params.id,
     {
       success: function(next_client) {
         ClientCaller(next_client).Call();
@@ -105,65 +102,6 @@ router.get('/:id/clients/next', function(req, res) {
     }
   );
 
-  // Group.getPaydeskNextClient(req.params.id).exec(function(err, clients) {
-
-  //   next_client = clients[0];
-
-  //   if (!next_client) {
-  //     res.json(404,err);
-  //     return;
-  //   }
-
-  //   Group.updateClientStatus(next_client._id, "calling").exec(function() {
-  //     ClientCaller(next_client).Call();
-  //   });
-
-  //   res.json(next_client);
-
-  // });
-
-
-  // Group.findByPaydesk(req.params.id).exec(function(err,group) {
-
-  //   if (!group) {
-  //     res.json(404,err);
-  //     return;
-  //   }
-
-  //   paydesk = group.paydesks.id(req.params.id);
-
-  //   //Move this to confirm
-  //   if (paydesk.current_client.length == 1) {
-
-  //     group.confirmed_clients++;
-  //     group.confirmed_times += Date.now() - paydesk.current_client[0].confirmed_time;
-
-  //     paydesk.current_client[0].saveToHistory();
-  //     paydesk.current_client[0].remove();
-
-  //     group.save();
-
-  //   }
-
-  //   // if (paydesk.called_client.length == 1) {
-  //   //   if (!next_client) {
-  //   //     res.json(404, {});
-  //   //     return;
-  //   //   };
-  //   // }
-
-  //   // var next_client = group.getNextClient();
-
-  //   // if (!next_client) {
-  //   //   res.json(404, {});
-  //   //   return;
-  //   // };
-
-  //   ClientCaller(group._id, paydesk._id, next_client._id, res).Call();
-
-  //   res.json(next_client);
-
-  // });
 });
 
 module.exports = router;
