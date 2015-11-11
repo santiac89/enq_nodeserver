@@ -14,14 +14,14 @@ router.get('/groups', function(req, res) {
 router.delete('/clients/:id', function(req, res) {
 
   Group.findAndRemoveClientByIp(req.params.id, req.connection.remoteAddress, {
-      success: (client) => {
-        client.saveToHistory();
-        res.json(client);
-      },
-      error: (err) => {
-        res.json(404,{});
-        return;
-      }
+    success: (client) => {
+      client.saveToHistory();
+      res.json(client);
+    },
+    error: (err) => {
+      res.json(404,{});
+      return;
+    }
   });
 
 });

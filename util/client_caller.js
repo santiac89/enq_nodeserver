@@ -6,7 +6,7 @@ var ClientManager = require('./client_manager');
 
 var ClientCaller = function(client) {
 
-   if (!(this instanceof ClientCaller))
+  if (!(this instanceof ClientCaller))
     return new ClientCaller(client);
 
   this.client = client;
@@ -22,7 +22,6 @@ var ClientCaller = function(client) {
     //client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
   };
 
-  // TODO: MOVER TODO ESTO A ALGUNA ENTIDAD QUE MANEJE LAS RESPUESTAS
   this.OnSocketConnection = function(socket) {
 
       var call_message = JSON.stringify({
@@ -72,6 +71,16 @@ var ClientCaller = function(client) {
     this.manager.OnClientReenqueue("response_timeout");
   };
 
+
+  this.OnSocketError = function(socket, err) {
+    console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " ERROR");
+    Group.errorClient(this.client._id, {
+      success: (client) => {
+        PaydeskBus.send(this.client.assigned_to, "error");
+      }
+    });
+  };
+
   // this.OnSocketEnd = function(socket) {
   //   console.log("["+Date.now()+"] CLIENT SOCKET " + this.client.number + " CLOSED");
 
@@ -91,35 +100,6 @@ var ClientCaller = function(client) {
     //   });
     // });
   // };
-
-  this.OnSocketError = function(socket, err) {
-    console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " ERROR");
-    Group.findAndUpdateClient(this.client._id,
-      { status: "error", errored_time: Date.now() },
-      {
-        success: (client) => {
-
-          Group.findAndRemoveClient(this.client._id, {
-
-            success: (client) => {
-
-              client.saveToHistory();
-
-              Group.removePaydeskCalledClient(this.client.assigned_to, {
-                success: () => {
-                  PaydeskBus.send(this.client.assigned_to, "error");
-                }
-              });
-
-            }
-
-          });
-
-        }
-      }
-    );
-  };
-
 };
 
 module.exports = ClientCaller;

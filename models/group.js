@@ -19,17 +19,6 @@ groupSchema.pre('save', function(next) {
   next();
 });
 
-// groupSchema.methods.enqueueClient = function(client) {
-// 	this.clients.push(client);
-//     return this;
-// };
-
-// groupSchema.methods.reenqueueClient = function(client) {
-//     var client = this.removeClient(client._id);
-//     this.enqueueClient(client);
-//     return this;
-// };
-
 groupSchema.methods.removeClient = function(client_id) {
     var client = this.clients.id(client_id);
     client.remove();
@@ -41,18 +30,6 @@ groupSchema.methods.removePaydesk = function(paydesk_id) {
   paydesk.remove();
   return paydesk;
 };
-
-// groupSchema.methods.getNextClient = function() {
-
-//     for (i = 0;i < this.clients.length ; i++) {
-//       if (this.clients[i].status != 'called' && this.clients[i].status != 'calling') {
-//        return this.clients[i];
-
-//       }
-//     }
-
-//     return null;
-// };
 
 groupSchema.methods.clientIsUnique = function(client) {
 
@@ -84,32 +61,100 @@ Group.reset = function() {
   });
 }
 
-Group.findByPaydesk = function(id) {
-    return this.findOne({ "paydesks._id": id });
-};
+Group.cancelClient = function(client_id, callbacks) {
+  Group.findAndUpdateClient(this.client._id,
+    { status: "cancel", cancelled_time: Date.now() },
+    {
+      success: (client) => {
 
-// Group.findByPaydeskNumber = function(number) {
-//     return this.findOne({ "paydesks.number": number });
-// };
+        Group.findAndRemoveClient(this.client._id, {
 
-Group.findAndUpdateClient = function(client_id, fields, callbacks) {
-  Object.keys(fields).forEach((key) => { fields[`clients.$.${key}`] = fields[key]; delete fields[key]; });
+          success: (client) => {
 
-  this.findOneAndUpdate({ "clients._id": client_id },{ $set: fields },{ new: true }, function(err, group) {
+            client.saveToHistory();
 
-    if (!group || err) {
-      if (callbacks.error) callbacks.error(err);
-      return;
+            Group.removePaydeskCalledClient(this.client.assigned_to, {
+              success: () => {
+                callbacks.success(client);
+              }
+            });
+
+          }
+
+        });
+
+      }
     }
-
-    client = group.clients.id(client_id);
-
-    callbacks.success(client);
-
-  });
+  );
 }
 
-Group.findAndReenqueueClient = function(client_id, reason, callbacks) {
+Group.confirmClient = function(client_id, callbacks) {
+  Group.findAndUpdateClient(this.client._id,
+    { status: "confirm", confirmed_time: Date.now() },
+    {
+      success: (client) => {
+
+        Group.findAndRemoveClient(this.client._id, {
+
+          success: (client) => {
+
+            client.saveToHistory();
+
+            Group.setPaydeskCurrentClient(client, {
+              success: () => {
+                callbacks.success(client);
+              }
+            });
+
+          }
+
+        });
+      }
+    }
+  );
+}
+
+Group.calledClient = function(client_id, callbacks) {
+  Group.findAndUpdateClient(this.client._id,
+    { status: "called", called_time: Date.now() },
+    {
+      success: (client) => {
+
+        Group.setPaydeskCalledClient(client, {
+          success: () => {
+            callbacks.success(client);
+          }
+        });
+      }
+    }
+  );
+}
+
+Group.errorClient = function(client_id, callbacks) {
+  Group.findAndUpdateClient(this.client._id,
+    { status: "error", errored_time: Date.now() },
+    {
+      success: (client) => {
+
+        Group.findAndRemoveClient(this.client._id, {
+
+          success: (client) => {
+
+            client.saveToHistory();
+
+            Group.removePaydeskCalledClient(this.client.assigned_to, {
+              success: () => {
+                callbacks.success(client);
+              }
+            });
+          }
+        });
+      }
+    }
+  );
+}
+
+Group.reenqueueClient = function(client_id, reason, callbacks) {
 
   this.findOneAndUpdate(
     { "clients._id": client_id },
@@ -152,54 +197,10 @@ Group.findAndReenqueueClient = function(client_id, reason, callbacks) {
               callbacks.reenqueued(client);
             }
           );
-
         }
-
       }
-
     });
-
   });
-}
-
-Group.findAndRemoveClient = function(client_id, callbacks) {
-  this.findOneAndUpdate(
-    { "clients._id": client_id },
-    { $pull: { clients: { _id: client_id } } },
-    { new: false },
-    function(err, group) {
-
-      if (!group || err) {
-        if (callbacks.error) callbacks.error(err);
-        return;
-      }
-
-      client = group.clients.id(client_id);
-
-      callbacks.success(client);
-
-    }
-  );
-}
-
-Group.findAndRemoveClientByIp = function(client_id, ip, callbacks) {
-  this.findOneAndUpdate(
-    { "clients._id": client_id, "clients.ip": ip },
-    { $pull: { clients: { _id: client_id } } },
-    { new: false },
-    function(err, group) {
-
-      if (!group || err) {
-        if (callbacks.error) callbacks.error(err);
-        return;
-      }
-
-      client = group.clients.id(client_id);
-
-      callbacks.success(client);
-
-    }
-  );
 }
 
 Group.addNewClient = function(group_id, client, callbacks) {
@@ -217,63 +218,6 @@ Group.addNewClient = function(group_id, client, callbacks) {
       client = group.clients.find((current_client) => { return current_client.ip == client.ip });
 
       callbacks.success(client);
-
-    }
-  );
-}
-// Group.updateClient = function(client_id, fields, callbacks) {
-//   Object.keys(fields).forEach((key) => { fields[`clients.$.${key}`] = fields[key]; delete fields[key]; });
-//   this.findOneAndUpdate({ "clients._id": client_id },{ $set: fields },{ new: true }, callbacks.success);
-// }
-
-Group.setPaydeskCalledClient = function(client, callbacks) {
-
-  this.update(
-    { "paydesks.number": client.assigned_to },
-    { $set: { "paydesks.$.called_client": [client] } },
-    function(err) {
-
-      if (err && callbacks.error) {
-        callbacks.error(err);
-        return;
-      }
-
-      callbacks.success();
-
-    }
-  );
-}
-
-Group.setPaydeskCurrentClient = function(client, callbacks) {
-
-  this.update(
-    { "paydesks.number": client.assigned_to },
-    { $set: { "paydesks.$.current_client": [client], "paydesks.$.called_client": [] } },
-    function(err) {
-
-      if (err && callbacks.error) {
-        callbacks.error(err);
-        return;
-      }
-
-      callbacks.success();
-
-    }
-  );
-}
-
-Group.removePaydeskCalledClient = function(paydesk_number, callbacks) {
-  this.update(
-    { "paydesks.number": paydesk_number },
-    { $set: { "paydesks.$.called_client": [] } },
-    function(err) {
-
-      if (err && callbacks.error) {
-        callbacks.error(err);
-        return;
-      }
-
-      callbacks.success();
 
     }
   );
@@ -320,27 +264,109 @@ Group.findPaydeskNextClient = function(paydesk_id, callbacks) {
       );
 
       callbacks.success(next_client);
-
     });
-
   });
+}
 
-  // return this.aggregate(
-  //   { $unwind: "$paydesks" },
-  //   { $match: { "paydesks._id": paydesk_id , "paydesks.called_client": [] } },
-  //   { $unwind: "$clients" },
-  //   { $match: { "clients.status": { $nin: ["calling","called"] } } },
-  //   { $limit: 1 },
-  //   { $project: {
-  //       _id: "$clients._id",
-  //       number: "$clients.number",
-  //       ip: "$clients.ip",
-  //       paydesk_number: "$paydesks.number",
-  //       reenqueue_count: "$clients.reenqueue_count",
-  //       estimated_time: { $divide: [ {$divide: ["$confirmed_times", "$confirmed_clients"]}, 60000] }
-  //     }
-  //   }
-  // );
+/*
+  BASIC OPERATIONS
+*/
+Group.findAndUpdateClient = function(client_id, fields, callbacks) {
+  Object.keys(fields).forEach((key) => { fields[`clients.$.${key}`] = fields[key]; delete fields[key]; });
+  this.findOneAndUpdate({ "clients._id": client_id },{ $set: fields },{ new: true }, function(err, group) {
+
+    if (!group || err) {
+      if (callbacks.error) callbacks.error(err);
+      return;
+    }
+
+    client = group.clients.id(client_id);
+    callbacks.success(client);
+  });
+}
+
+Group.setPaydeskCalledClient = function(client, callbacks) {
+  this.update(
+    { "paydesks.number": client.assigned_to },
+    { $set: { "paydesks.$.called_client": [client] } },
+    function(err) {
+
+      if (err && callbacks.error) {
+        callbacks.error(err);
+        return;
+      }
+
+      callbacks.success();
+    }
+  );
+}
+
+Group.setPaydeskCurrentClient = function(client, callbacks) {
+  this.update(
+    { "paydesks.number": client.assigned_to },
+    { $set: { "paydesks.$.current_client": [client], "paydesks.$.called_client": [] } },
+    function(err) {
+
+      if (err && callbacks.error) {
+        callbacks.error(err);
+        return;
+      }
+
+      callbacks.success();
+    }
+  );
+}
+
+Group.removePaydeskCalledClient = function(paydesk_number, callbacks) {
+  this.update(
+    { "paydesks.number": paydesk_number },
+    { $set: { "paydesks.$.called_client": [] } },
+    function(err) {
+
+      if (err && callbacks.error) {
+        callbacks.error(err);
+        return;
+      }
+
+      callbacks.success();
+    }
+  );
+}
+
+Group.findAndRemoveClient = function(client_id, callbacks) {
+  this.findOneAndUpdate(
+    { "clients._id": client_id },
+    { $pull: { clients: { _id: client_id } } },
+    { new: false },
+    function(err, group) {
+
+      if (!group || err) {
+        if (callbacks.error) callbacks.error(err);
+        return;
+      }
+
+      client = group.clients.id(client_id);
+      callbacks.success(client);
+    }
+  );
+}
+
+Group.findAndRemoveClientByIp = function(client_id, ip, callbacks) {
+  this.findOneAndUpdate(
+    { "clients._id": client_id, "clients.ip": ip },
+    { $pull: { clients: { _id: client_id } } },
+    { new: false },
+    function(err, group) {
+
+      if (!group || err) {
+        if (callbacks.error) callbacks.error(err);
+        return;
+      }
+
+      client = group.clients.id(client_id);
+      callbacks.success(client);
+    }
+  );
 }
 
 Group.findPaydesk = function(paydesk_id) {
@@ -359,89 +385,8 @@ Group.findPaydesk = function(paydesk_id) {
   );
 }
 
-// Group.findClient = function(client_id) {
-//   return this.aggregate(
-//     { $unwind: "$clients" },
-//     { $match: { "clients._id": client_id } },
-//     { $project: { _id: "$clients._id" , number: "$clients.number" } }
-//   );
-// }
-
-Group.setCalledClient = function(client) {
-  this.update(
-    { "paydesks.number": client.paydesk_number, "clients._id": client._id },
-    { $set: {
-        "clients.$.status": "called",
-        "clients.$.called_by": client.paydesk_number,
-        "clients.$.called_time": Date.now(),
-        "paydesks.$.current_client": 0,
-        "paydesks.$.called_client": client._id
-      }
-    }
-  ).exec(function() {
-    //SAVE TO HISTORY
-  });
-}
-
-Group.setConfirmedClient = function(client) {
-  this.update(
-    { "paydesks.number": client.paydesk_number, "clients._id": client._id },
-    { $set: {
-        "clients.$.status": "confirmed",
-        "clients.$.confirmed_time": Date.now(),
-        "paydesks.$.current_client": client._id,
-        "paydesks.$.called_client": 0
-      }
-    }
-  );
-}
-
-Group.setCancelledClient = function(client) {
-  this.update(
-    { "paydesks.number": client.paydesk_number, "clients._id": client._id },
-    { $set: {
-        "clients.$.status": "cancelled",
-        "clients.$.cancelled_time": Date.now(),
-        "paydesks.$.called_client": 0
-      }
-    }
-  );
-}
-
-Group.setReenqueuedClient = function(client, reason) {
-  this.update(
-    { "paydesks.number": client.paydesk_number, "clients._id": client._id },
-    { $set: {
-        "clients.$.status": reason,
-        "paydesks.$.called_client": 0
-      },
-      $inc: {
-        "clients.$.reenqueue_count": 1
-      }
-    }
-  );
-}
-
-// Group.getAllPaydesks = function() {
-
-//     this.find({},'paydesks').exec(function(err, groups) {
-
-//         var paydesks = [];
-
-//         for (i=0; i < groups.length; i++) {
-//           for (o=0; o < groups[i].paydesks.length; o++) {
-
-//             paydesks.push(groups[i].paydesks[o]);
-
-//           }
-//         }
-
-//     });
-
-// };
-
-// Group.findByClient = function(id) {
-//     return this.findOne({ clients: { $elemMatch: { _id: id } }});
-// };
+Group.findByPaydesk = function(id) {
+  return this.findOne({ "paydesks._id": id });
+};
 
 module.exports = Group;
