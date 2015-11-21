@@ -62,18 +62,18 @@ Group.reset = function() {
 }
 
 Group.cancelClient = function(client_id, callbacks) {
-  Group.findAndUpdateClient(this.client._id,
+  Group.findAndUpdateClient(client_id,
     { status: "cancel", cancelled_time: Date.now() },
     {
       success: (client) => {
 
-        Group.findAndRemoveClient(this.client._id, {
+        Group.findAndRemoveClient(client_id, {
 
           success: (client) => {
 
             client.saveToHistory();
 
-            Group.removePaydeskCalledClient(this.client.assigned_to, {
+            Group.removePaydeskCalledClient(client.assigned_to, {
               success: () => {
                 callbacks.success(client);
               }
@@ -89,12 +89,12 @@ Group.cancelClient = function(client_id, callbacks) {
 }
 
 Group.confirmClient = function(client_id, callbacks) {
-  Group.findAndUpdateClient(this.client._id,
+  Group.findAndUpdateClient(client_id,
     { status: "confirm", confirmed_time: Date.now() },
     {
       success: (client) => {
 
-        Group.findAndRemoveClient(this.client._id, {
+        Group.findAndRemoveClient(client_id, {
 
           success: (client) => {
 
@@ -115,7 +115,7 @@ Group.confirmClient = function(client_id, callbacks) {
 }
 
 Group.calledClient = function(client_id, callbacks) {
-  Group.findAndUpdateClient(this.client._id,
+  Group.findAndUpdateClient(client_id,
     { status: "called", called_time: Date.now() },
     {
       success: (client) => {
@@ -131,18 +131,18 @@ Group.calledClient = function(client_id, callbacks) {
 }
 
 Group.errorClient = function(client_id, callbacks) {
-  Group.findAndUpdateClient(this.client._id,
+  Group.findAndUpdateClient(client_id,
     { status: "error", errored_time: Date.now() },
     {
       success: (client) => {
 
-        Group.findAndRemoveClient(this.client._id, {
+        Group.findAndRemoveClient(client_id, {
 
           success: (client) => {
 
             client.saveToHistory();
 
-            Group.removePaydeskCalledClient(this.client.assigned_to, {
+            Group.removePaydeskCalledClient(client.assigned_to, {
               success: () => {
                 callbacks.success(client);
               }
