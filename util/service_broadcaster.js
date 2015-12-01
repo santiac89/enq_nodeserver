@@ -29,19 +29,26 @@ client.on("message", function(message, rinfo) {
 
   var response = new Buffer(JSON.stringify(service_info) + "\n");
 
-  net.createConnection(client_port, rinfo.address, function() {
-
-    var socket = this;
-
-    this.on('timeout', function() {
-      socket.end();
-    });
-
-    this.on('error' ,function() {
-      socket.end();
-    });
-
-    this.write(response, 'UTF-8', function(err) { socket.end(); });
+  client_socket = net.createConnection(client_port, rinfo.address, function() {
+    this.write(response, 'UTF-8', (err) => { this.end(); });
   });
 
+  client_socket.on('timeout', () => {
+    // console.log(err);
+    client_socket.end();
+  });
+
+  client_socket.on('error' , (err) => {
+    // console.log(err);
+    client_socket.end();
+  });
+
+});
+
+client.on("error", function(err) {
+  console.log(err);
+});
+
+client.on("timeout", function() {
+  console.log("Timeout");
 });

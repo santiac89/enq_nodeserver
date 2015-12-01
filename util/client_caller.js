@@ -19,7 +19,7 @@ var ClientCaller = function(client) {
     client_tcp_conn.on('error', function(err) { self.OnSocketError(this , err); });
     client_tcp_conn.on('timeout', function() { self.OnSocketTimeout(this); });
     client_tcp_conn.on('close', function(had_error) { self.OnSocketClose(this, had_error); });
-    //client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
+    // client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
   };
 
   this.OnSocketConnection = function(socket) {
@@ -80,6 +80,15 @@ var ClientCaller = function(client) {
       }
     });
   };
+
+  // this.OnSocketEnd = function(socket, err) {
+  //   console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " END");
+  //   Group.errorClient(this.client._id, {
+  //     success: (client) => {
+  //       PaydeskBus.send(this.client.assigned_to, "error");
+  //     }
+  //   });
+  // };
 
   // this.OnSocketEnd = function(socket) {
   //   console.log("["+Date.now()+"] CLIENT SOCKET " + this.client.number + " CLOSED");

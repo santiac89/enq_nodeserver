@@ -107,7 +107,6 @@ Group.confirmClient = function(client_id, callbacks) {
             });
 
           }
-
         });
       }
     }

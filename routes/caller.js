@@ -26,7 +26,7 @@ router.get('/:id', function(req, res) {
 
       switch (paydesk.current_client[0].status) {
 
-        case 'confirmed':
+        case 'confirm':
          current_client.response = "Confirmado";
         break;
 

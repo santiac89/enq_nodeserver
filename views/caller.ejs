@@ -76,7 +76,7 @@
           <p id="timeout" class="green"></p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-success" data-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" data-dismiss="modal">Cliente en caja</button>
         </div>
       </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
@@ -98,6 +98,8 @@
       $scope.client_interval_id = 0;
 
       $scope.init = function() {
+
+        $scope.preventNavigation();
 
         $scope.reloadStatus();
 
@@ -195,6 +197,7 @@
             // $scope.called_client = next_client;
             // $scope.startCallResponseTimeout(<%= call_timeout %>);
             $scope.called_client = next_client;
+            $scope.called_client.response = "Llamando...";
 
           }).error(function() {
               $scope.called_client.number = "No hay mas clientes.";
@@ -226,6 +229,7 @@
 
       $scope.startArrivalTimeout = function(seconds, callback) {
         var count = seconds;
+        clearInterval($scope.confirmed_interval_id);
         $('#timeoutModal').modal();
         $("#timeout").html(--count);
         $scope.confirmed_interval_id = setInterval(function() {
@@ -249,16 +253,16 @@
 
               var count = group.paydesks.filter(paydesk => { return paydesk.active }).length
 
-              if (count == 1) {
-                response =  "Atención! Esta es la última caja activa en el grupo. Si la cierra, el grupo no estará disponible para los clientes. Desea continuar?";
-              }
+                if (count == 1 && confirm("Atención! Esta es la última caja activa en el grupo. Si la cierra, el grupo no estará disponible para los clientes. Desea continuar?")) {
+
+                }
             }
           });
 
-          return response;
+
       }
 
-      window.onbeforeunload = $scope.alertLackOfPaydesksInGroup;
+
 
   });
 
