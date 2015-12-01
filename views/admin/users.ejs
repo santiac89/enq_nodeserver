@@ -20,7 +20,7 @@
 
           <tr ng-repeat="user in users">
             <td>{{user.username}}</td>
-            <td>{{user.role}}</td>
+            <td>{{user.role == 'admin' ? "Admin" : "Caja"}}</td>
             <td><a ng-click="delete(user)" href="#"><span class="glyphicon glyphicon-remove" ></span></a></td>
             <td><a ng-click="_edit(user)" href="#"><span class="glyphicon glyphicon-edit" ></span></a></td>
           </tr>
