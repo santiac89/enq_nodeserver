@@ -13,7 +13,6 @@ require('./util/prototypes');
 var mongoose = require('mongoose');
 var config = require('./config.js');
 var engine = require('ejs-locals');
-// var transaction_logger = require('./util/transaction_logger');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var MongoSessionStore = require('connect-mongo')(session);

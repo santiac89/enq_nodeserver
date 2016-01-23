@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "prestart": "mongod --dbpath ./data/db",
     "start": "node ./bin/www"
   },
   "dependencies": {

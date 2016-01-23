@@ -31,7 +31,6 @@ router.get('/', function(req, res) {
 
 });
 
-
 router.get('/:id', function(req, res) {
 
   if (!req.user) res.redirect('/');
@@ -48,10 +47,6 @@ router.get('/:id', function(req, res) {
   });
 
 });
-
-
-
-
 
 router.delete('/:id', function(req, res) {
 
