@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var number_generator = require('../util/local_number_generator');
 var Group = require('../models/group');
 
 router.get('/', function(req, res) {
@@ -29,7 +28,8 @@ router.put('/:id', function(req, res) {
     if (group === null) res.json(404,[]);
     var newGroup = new Group(req.body);
     group.name = newGroup.name;
-    group.timeout = newGroup.timeout;
+    group.paydesk_arrival_timeout = newGroup.paydesk_arrival_timeout;
+    console.log(group);
     group.save(function(err,group) {
       if (err) res.json(500,err);
       res.json(group);

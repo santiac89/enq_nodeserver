@@ -34,12 +34,10 @@ client.on("message", function(message, rinfo) {
   });
 
   client_socket.on('timeout', () => {
-    // console.log(err);
     client_socket.end();
   });
 
   client_socket.on('error' , (err) => {
-    // console.log(err);
     client_socket.end();
   });
 

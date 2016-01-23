@@ -99,8 +99,6 @@
 
       $scope.init = function() {
 
-        $scope.preventNavigation();
-
         $scope.reloadStatus();
 
         $scope.socket = io('http://'+window.location.host);
@@ -110,8 +108,6 @@
         });
 
         $scope.socket.on('client_response', function (data) {
-
-          // if (data.paydesk_number != <%= paydesk.number %>) return;
 
           switch (data.message) {
 

@@ -109,7 +109,7 @@ Group.confirmClient = function(client_id, callbacks) {
           }
         });
       }
-    }
+    }, true
   );
 }
 
@@ -270,7 +270,7 @@ Group.findPaydeskNextClient = function(paydesk_id, callbacks) {
 /*
   BASIC OPERATIONS
 */
-Group.findAndUpdateClient = function(client_id, fields, callbacks) {
+Group.findAndUpdateClient = function(client_id, fields, callbacks, update_times) {
   Object.keys(fields).forEach((key) => { fields[`clients.$.${key}`] = fields[key]; delete fields[key]; });
   this.findOneAndUpdate({ "clients._id": client_id },{ $set: fields },{ new: true }, function(err, group) {
 
@@ -280,6 +280,13 @@ Group.findAndUpdateClient = function(client_id, fields, callbacks) {
     }
 
     client = group.clients.id(client_id);
+
+    if (update_times) {
+      group.confirmed_times = (client.confirmed_time - client.enqueue_time);
+      group.confirmed_clients += 1;
+      group.save();
+    }
+
     callbacks.success(client);
   });
 }

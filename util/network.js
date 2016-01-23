@@ -11,7 +11,6 @@ network.netmask = function()
 	for (iface in ifaces) {
 
 		for (var i = 0; i < ifaces[iface].length;i++) {
-			
 
 			if (ifaces[iface][i].address == ip.address())	{
 

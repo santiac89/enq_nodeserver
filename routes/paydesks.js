@@ -50,6 +50,9 @@ router.get('/:id', function(req, res) {
 });
 
 
+
+
+
 router.delete('/:id', function(req, res) {
 
   Group.findByPaydesk(req.params.id).exec(function(err,group) {
