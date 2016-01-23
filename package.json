@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "prestart": "mongod --dbpath ./data/db",
-    "start": "node ./bin/www"
+    "prestart": "mongod --fork --dbpath ./data/db --logpath ./data/log",
+    "start": "node ./bin/www",
+    "stop": "killall mongod"
   },
   "dependencies": {
     "bson-ext" : "guymguym/bson-ext",

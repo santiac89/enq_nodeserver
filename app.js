@@ -64,6 +64,10 @@ User.findOne({ username: "admin" }).exec(function(err, user) {
   if (!user) {
     User.register(new User({ username: "admin" }), config.admin.password, function(err, user) {
       console.log("Admin user created!");
+      User.findOne({ username: "admin" }).exec(function(err, user) {
+        user.role = 'admin';
+        user.save();
+      });
     });
     return;
   }
