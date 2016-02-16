@@ -1,20 +1,24 @@
 var mongoose = require('mongoose');
 var config = require('../config');
+var uniqueValidator = require('mongoose-unique-validator');
 var ClientHistory = require('./client_history');
 
 var clientSchema = mongoose.Schema({
   number:  { type: Number, required: false },
-  hmac:  { type: String, required: true },
-  ip:  { type: String, required: true },
+  hmac:  { type: String, required: true, unique: true },
+  ip:  { type: String, required: true, unique: true },
   reenqueue_count: { type: Number, default: 0 },
   enqueue_time: { type: Number, default: 0 },
-  called_time: { type: Number, default: 0 },
+  called_time: { type: Number, default: 0 }, // TODO Cambiar a array de llamados
   cancelled_time: { type: Number, default: 0 },
   errored_time: { type: Number, default: 0 },
   confirmed_time: { type: Number, default: 0 },
   status: { type: String, default: "idle" },
-  assigned_to: Number
+  group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group' },
+  paydesk: { type: mongoose.Schema.Types.ObjectId, ref: 'Paydesk' }
 });
+
+clientSchema.plugin(uniqueValidator);
 
 clientSchema.methods.setReenqueued = function(reason) {
   this.reenqueue_count++;
@@ -60,4 +64,21 @@ clientSchema.methods.saveToHistory = function() {
   return historical;
 }
 
-module.exports = clientSchema;
+var Client = mongoose.model('Client', clientSchema);
+
+Client.findOrCreate = function(client_info, callback) {
+  this.findOne({ hmac: client_info.hmac }, function(err, client) {
+
+    if (err) callback(err);
+
+    if (!client) {
+      client = new Client(client_info);
+      client.save(callback);
+    }
+
+    callback(undefined, client);
+
+  });
+}
+
+module.exports = Client;

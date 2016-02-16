@@ -2,13 +2,13 @@ var mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
 var clientSchema = require('./client');
 var paydeskSchema = require('./paydesk');
+var redis = require("redis").createClient();
 var Schema = mongoose.Schema;
 
 var groupSchema = Schema({
     paydesk_arrival_timeout: { type: Number, required: true , unique: false},
     name: { type: String, required: true , unique: true},
-    paydesks:  [paydeskSchema],
-    clients: [clientSchema],
+    paydesks:  [{ type: Schema.Types.ObjectId, ref: 'Paydesk' }],
     confirmed_clients:  { type: Number, default: 0 },
     confirmed_times:  { type: Number, default: 0 },
     paydesks_count:  { type: Number, default: 0 }
@@ -19,11 +19,11 @@ groupSchema.pre('save', function(next) {
   next();
 });
 
-groupSchema.methods.removeClient = function(client_id) {
-    var client = this.clients.id(client_id);
-    client.remove();
-    return client;
-};
+// groupSchema.methods.removeClient = function(client_id) {
+//     var client = this.clients.id(client_id);
+//     client.remove();
+//     return client;
+// };
 
 groupSchema.methods.removePaydesk = function(paydesk_id) {
   var paydesk = this.paydesks.id(paydesk_id);
@@ -41,6 +41,23 @@ groupSchema.methods.clientIsUnique = function(client) {
 
   return true;
 };
+
+groupSchema.method.removeClient = function(client, callback) {
+  redis.lrem(`groups:${this._id}:clients 0 ${client._id}`, callback);
+}
+
+groupSchema.methods.enqueueClient = function(client, callback) {
+  redis.lpush(`groups:${this._id}:clients`, client._id, callback);
+}
+
+groupSchema.methods.getNextClientForPaydesk = function(paydesk_id, callback) {
+  redis.rpoplpush(`groups:#{this._id}:clients paydesk:#{paydesk_id}:client_called`,
+    function(err, client_id) {
+      if (err) return callback(err);
+      Client.findOne({ _id: client_id }, callback);
+    }
+  );
+}
 
 groupSchema.plugin(uniqueValidator);
 
@@ -62,6 +79,8 @@ Group.reset = function() {
 }
 
 Group.cancelClient = function(client_id, callbacks) {
+
+  // Client.findOne({ _id })
   Group.findAndUpdateClient(client_id,
     { status: "cancel", cancelled_time: Date.now() },
     {
@@ -222,50 +241,54 @@ Group.addNewClient = function(group_id, client, callbacks) {
   );
 }
 
-Group.findPaydeskNextClient = function(paydesk_id, callbacks) {
 
-  this.findPaydesk(paydesk_id).exec((err, paydesks) => {
 
-    paydesk = paydesks[0];
+// Group.findPaydeskNextClient = function(paydesk_id, callbacks) {
 
-    if (!paydesk || paydesk.called_client.size > 0) {
-      callbacks.error(err);
-      return;
-    }
+//   this.findPaydesk(paydesk_id).exec((err, paydesks) => {
 
-    this.findOneAndUpdate(
-      {
-        _id: mongoose.Types.ObjectId(paydesk.group_id) ,
-        clients: { $elemMatch: { status: { $nin: ["calling","called","confirmed","cancelled"] } } }
-      },
-      {
-        $set: {
-          "clients.$.status": "calling",
-          "clients.$.assigned_to": paydesk.number,
-        }
-      },
-      {
-        new: true
-      }
-    ).exec(function(err, group) {
+//     paydesk = paydesks[0];
 
-      if (!group) {
-        callbacks.error(err);
-        return;
-      }
+//     if (!paydesk || paydesk.called_client.size > 0) {
+//       callbacks.error(err);
+//       return;
+//     }
 
-      next_client = group.clients.find((client) => {
-        return client.assigned_to == paydesk.number && client.status == "calling"
-      });
+//     // group.getNextClient();
 
-      next_client.next_estimated_time = Math.round(
-        group.confirmed_times/(group.confirmed_clients?group.confirmed_clients:1)/60000
-      );
+//     this.findOneAndUpdate(
+//       {
+//         _id: mongoose.Types.ObjectId(paydesk.group_id) ,
+//         clients: { $elemMatch: { status: { $nin: ["calling","called","confirmed","cancelled"] } } }
+//       },
+//       {
+//         $set: {
+//           "clients.$.status": "calling",
+//           "clients.$.assigned_to": paydesk.number,
+//         }
+//       },
+//       {
+//         new: true
+//       }
+//     ).exec(function(err, group) {
 
-      callbacks.success(next_client);
-    });
-  });
-}
+//       if (!group) {
+//         callbacks.error(err);
+//         return;
+//       }
+
+//       next_client = group.clients.find((client) => {
+//         return client.assigned_to == paydesk.number && client.status == "calling"
+//       });
+
+//       next_client.next_estimated_time = Math.round(
+//         group.confirmed_times/(group.confirmed_clients?group.confirmed_clients:1)/60000
+//       );
+
+//       callbacks.success(next_client);
+//     });
+//   });
+// }
 
 /*
   BASIC OPERATIONS
@@ -394,5 +417,6 @@ Group.findPaydesk = function(paydesk_id) {
 Group.findByPaydesk = function(id) {
   return this.findOne({ "paydesks._id": id });
 };
+
 
 module.exports = Group;

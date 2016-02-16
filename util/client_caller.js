@@ -4,13 +4,15 @@ var net = require('net');
 var Group = require('../models/group');
 var ClientManager = require('./client_manager');
 
-var ClientCaller = function(client) {
+var ClientCaller = function(client, paydesk, group) {
 
   if (!(this instanceof ClientCaller))
-    return new ClientCaller(client);
+    return new ClientCaller(client, paydesk, group);
 
-  this.client = client;
-  this.manager = ClientManager(client);
+  this.client  = client;
+  this.paydesk = paydesk;
+  this.group   = group;
+  this.manager = ClientManager(client, paydesk, group);
 
   this.Call = () => {
     var self = this;
@@ -25,7 +27,7 @@ var ClientCaller = function(client) {
   this.OnSocketConnection = function(socket) {
 
       var call_message = JSON.stringify({
-        paydesk_number: this.client.assigned_to,
+        paydesk_number: this.paydesk.number,
         reenqueue_count: this.client.reenqueue_count,
         next_estimated_time: this.client.next_estimated_time
       }) + '\n';
@@ -76,7 +78,7 @@ var ClientCaller = function(client) {
     console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " ERROR");
     Group.errorClient(this.client._id, {
       success: (client) => {
-        PaydeskBus.send(this.client.assigned_to, "error");
+        PaydeskBus.send(this.paydesk.number, "error");
       }
     });
   };

@@ -86,15 +86,15 @@ User.findOne({ username: "admin" }).exec(function(err, user) {
 app.use('/', index);
 app.use('/m', mobile);
 
-app.use(function(req, res, next) {
- if (!req.user) {
-    var err = new Error('Not Found ;(');
-    err.status = 404;
-    next(err);
-    return;
-  }
-  next();
-})
+// app.use(function(req, res, next) {
+//  if (!req.user) {
+//     var err = new Error('Not Found ;(');
+//     err.status = 404;
+//     next(err);
+//     return;
+//   }
+//   next();
+// })
 
 app.use('/caller', caller);
 app.use('/admin', admins);

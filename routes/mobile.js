@@ -5,63 +5,55 @@ var Client = require('../models/client');
 var Counters = require('../models/counter');
 
 router.get('/groups', function(req, res) {
-  Group.find( { paydesks: { $elemMatch: { active: true  } } } ,function(err,groups) {
+  Group.find({}, function(err,groups) {
      res.json(groups);
   });
 });
 
 router.delete('/clients/:id', function(req, res) {
-
-  Group.findAndRemoveClientByIp(req.params.id, req.connection.remoteAddress, {
-    success: (client) => {
-      client.saveToHistory();
-      res.json(client);
-    },
-    error: (err) => {
-      res.json(404,{});
-      return;
-    }
+  Client.findOne({ _id: req.params.id }).then(function(client) {
+    client.group.removeClient(client);
+    client.saveToHistory();
+    client.remove();
+    res.json(200);
   });
-
 });
 
 router.post('/groups/:id/clients', function(req, res) {
-  Group.findOne({_id: req.params.id }, function(err,group) {
+  Group.findOne({ _id: req.params.id }, function(err, group) {
 
-    if (!group) {
+    if (!group || err) {
       res.json(404,err);
-      return;
-    }
-
-    var new_client = {
-      ip: req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress,
-      hmac: req.body.hmac
-    }
-
-    if (!group.clientIsUnique(new_client)) {
-      res.json(500,{});
       return;
     }
 
     Counters.getNextSequence("number", function(err, counter) {
 
-      new_client.enqueue_time = Date.now();
-      new_client.number = counter.seq;
+      var client_info = {
+        ip: req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress,
+        hmac: req.body.hmac,
+        enqueue_time: Date.now(),
+        number: counter.seq
+      }
 
-      Group.addNewClient(group._id, new_client, {
-        success: (client) => {
+      Client.findOrCreate(client_info, function(err, client) {
+        if (err) return res.json(500, err);
+
+        group.enqueueClient(client, function(err) {
+
+          client.group_id = group._id;
+          client.save();
+
           res.json({
             client_number: client.number,
             client_id:  client._id,
             paydesk_arrival_timeout: group.paydesk_arrival_timeout,
             group_name: group.name
           });
-        },
-        error: (err) => {
-          res.json(500,err);
-          return;
-        }
+        });
+
       });
+
     });
 
   });

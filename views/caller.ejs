@@ -107,7 +107,7 @@
           $scope.socket.emit('hello', { paydesk_id: "<%= paydesk._id %>", paydesk_number: "<%= paydesk.number %>" });
         });
 
-        $scope.socket.on('client_response', function (data) {
+        $scope.socket.on('server_message', function (data) {
 
           switch (data.message) {
 
