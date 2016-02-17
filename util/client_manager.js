@@ -1,5 +1,6 @@
 var PaydeskBus = require('./paydesk_bus');
 var Group = require('../models/group');
+var Emitter = require('../models/event').Emitter;
 
 var ClientManager = function(client, paydesk, group) {
 
@@ -15,6 +16,7 @@ var ClientManager = function(client, paydesk, group) {
     this.client.setCalledBy(this.paydesk.number);
     this.client.save(function(err, client) {
       PaydeskBus.send(this.paydesk.number, "call_received");
+      Emitter.clientCalled(client, this.paydesk);
     });
   }
 
@@ -25,7 +27,7 @@ var ClientManager = function(client, paydesk, group) {
     this.client.save(function(err, client) {
       this.paydesk.removeCalledClient(this.client)
       PaydeskBus.send(this.paydesk.number, "confirmed");
-      // registrar evento en clienthistories
+      Emitter.clientConfirm(client, this.paydesk);
     });
   }
 
@@ -35,8 +37,8 @@ var ClientManager = function(client, paydesk, group) {
     this.client.save(function(err, client) {
       this.paydesk.removeCalledClient(this.client);
       PaydeskBus.send(this.paydesk.number, "cancelled");
+      Emitter.clientCancel(client, this.paydesk);
       // el cliente queda fuera de cualquier cola (esta guardado en la collección de `clients`)
-      // registrar evento en clienthistories
     });
   };
 
@@ -44,16 +46,19 @@ var ClientManager = function(client, paydesk, group) {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [reenqueue="+ reason +"]");
 
     this.client.setReenqueued(reason);
-    this.paydesk.removeCalledClient(this.client)
+    this.paydesk.removeCalledClient(this.client);
+    Emitter.clientRemovedFromPaydesk(client, this.paydesk, reason);
 
     if (this.client.hasReachedLimit()) {
 
       PaydeskBus.send(this.paydesk.number, 'queue_limit_reached');
+      Emitter.clientReachedReenqueueLimit(client, this.paydesk);
 
     } else {
 
       this.group.enqueueClient(this.client , function(err) {
         PaydeskBus.send(this.paydesk.number, reason);
+        Emitter.clientReenqueued(client, this.paydesk, reason);
       });
 
     }
