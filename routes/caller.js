@@ -83,27 +83,45 @@ router.get('/:id/group', function(req, res) {
 });
 
 router.get('/:id/clients/next', function(req, res) {
-  Group.findByPaydesk(req.params.id, function(err, group) {
+  Paydesk.findOne({ _id: req.params.id }).exec(function(err, paydesk) {
+    if (!paydesk || err) return res.json(404, err);
 
-    if (!group || err) return res.json(500, err);
+    var group = paydesk.group;
 
-    group.getNextClientForPaydesk(req.params.id, function(err, client) {
+    paydesk.fetchNextClient(function(err, client) {
+      if (err) return res.json(500, err);
+      if (!client) return res.json(200, {}); // No more clients to call
 
-      if (!client || err) return res.json(500, err);
-
-      client.paydesk = group.paydesks.id(req.params.id);
-
-      // group, client y paydesk
-      // paydesk.tryCall(client)
-
+      client.paydesk = paydesk;
       client.save(function(err) {
-        ClientCaller(client, client.paydesk, client.group).Call();
+        ClientCaller(client, paydesk, group).Call();
         res.json(client);
       });
+    })
 
-    });
+  })
+  // Group.findByPaydesk(req.params.id, function(err, group) {
 
-  });
+  //   if (!group || err) return res.json(500, err);
+
+  //   group.getNextClientForPaydesk(req.params.id, function(err, client) {
+
+  //     if (!client || err) return res.json(500, err);
+
+  //     client.paydesk = group.paydesks.id(req.params.id);
+
+  //     // group, client y paydesk
+  //     // paydesk.tryCall(client)
+
+  //     client.save(function(err) {
+  //       console.log("ACA");
+  //       ClientCaller(client, client.paydesk, client.group).Call();
+  //       res.json(client);
+  //     });
+
+  //   });
+
+  // });
 });
 
 module.exports = router;
