@@ -25,6 +25,10 @@
     "passport" : "~0.3.0",
     "passport-local" : "~1.0.0",
     "express-session" : "~1.11.3",
-    "passport-local-mongoose" : "~3.0.0"
+    "passport-local-mongoose" : "~3.0.0",
+    "connect-mongo": "*",
+    "bluebird": "*",
+    "kerberos": "*",
+    "redis": "*"
   }
 }
