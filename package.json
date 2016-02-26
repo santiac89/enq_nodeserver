@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "prestart": "mongod --fork --dbpath ./data/db --logpath ./data/log",
+    "prestart": "killall node ; killall mongod ; mongod --fork --dbpath ./data/db --logpath ./data/log",
     "start": "node ./bin/www",
     "stop": "killall mongod"
   },

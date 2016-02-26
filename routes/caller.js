@@ -83,21 +83,21 @@ router.get('/:id/group', function(req, res) {
 });
 
 router.get('/:id/clients/next', function(req, res) {
-  Group.findByPaydesk(req.params.id, function(err, group) {
+  Paydesk.findOne(req.params.id).populate('group').exec(function(err, paydesk) {
 
-    if (!group || err) return res.json(500, err);
+    if (!paydesk.group || err) return res.json(500, err);
 
-    group.getNextClientForPaydesk(req.params.id, function(err, client) {
+    paydesk.group.getNextClientForPaydesk(req.params.id, function(err, client) {
 
       if (!client || err) return res.json(500, err);
 
-      client.paydesk = group.paydesks.id(req.params.id);
+      client.paydesk = paydesk
 
       // group, client y paydesk
       // paydesk.tryCall(client)
 
       client.save(function(err) {
-        ClientCaller(client, client.paydesk, client.group).Call();
+        ClientCaller(client, client.paydesk, client.paydesk.group).Call();
         res.json(client);
       });
 

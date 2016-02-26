@@ -1,6 +1,6 @@
 var PaydeskBus = require('./paydesk_bus');
 var Group = require('../models/group');
-var Emitter = require('../models/event').Emitter;
+var Emitter = require('../models/event');
 
 var ClientManager = function(client, paydesk, group) {
 
@@ -14,7 +14,7 @@ var ClientManager = function(client, paydesk, group) {
   this.OnClientCalled = function() {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " HELLO!");
     this.client.setCalledBy(this.paydesk.number);
-    this.client.save(function(err, client) {
+    this.client.save((err, client) => {
       PaydeskBus.send(this.paydesk.number, "call_received");
       Emitter.clientCalled(client, this.paydesk);
     });
@@ -24,7 +24,7 @@ var ClientManager = function(client, paydesk, group) {
   this.OnClientConfirm = function() {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [confirm]");
     this.client.setConfirmed();
-    this.client.save(function(err, client) {
+    this.client.save((err, client) => {
       this.paydesk.removeCalledClient(this.client)
       PaydeskBus.send(this.paydesk.number, "confirmed");
       Emitter.clientConfirm(client, this.paydesk);
@@ -34,7 +34,8 @@ var ClientManager = function(client, paydesk, group) {
   this.OnClientCancel = function() {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [cancel]");
     this.client.setCancelled();
-    this.client.save(function(err, client) {
+
+    this.client.save((err, client) => {
       this.paydesk.removeCalledClient(this.client);
       PaydeskBus.send(this.paydesk.number, "cancelled");
       Emitter.clientCancel(client, this.paydesk);
@@ -47,18 +48,19 @@ var ClientManager = function(client, paydesk, group) {
 
     this.client.setReenqueued(reason);
     this.paydesk.removeCalledClient(this.client);
-    Emitter.clientRemovedFromPaydesk(client, this.paydesk, reason);
+
+    Emitter.clientRemovedFromPaydesk(this.client, this.paydesk, reason);
 
     if (this.client.hasReachedLimit()) {
 
       PaydeskBus.send(this.paydesk.number, 'queue_limit_reached');
-      Emitter.clientReachedReenqueueLimit(client, this.paydesk);
+      Emitter.clientReachedReenqueueLimit(this.client, this.paydesk);
 
     } else {
 
-      this.group.enqueueClient(this.client , function(err) {
+      this.group.enqueueClient(this.client , (err) => {
         PaydeskBus.send(this.paydesk.number, reason);
-        Emitter.clientReenqueued(client, this.paydesk, reason);
+        Emitter.clientReenqueued(this.client, this.paydesk, reason);
       });
 
     }
