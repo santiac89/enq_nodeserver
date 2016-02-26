@@ -93,18 +93,18 @@ router.get('/:id/clients/next', function(req, res) {
 
       client.paydesk = paydesk
 
-    paydesk.fetchNextClient(function(err, client) {
-      if (err) return res.json(500, err);
-      if (!client) return res.json(200, {}); // No more clients to call
+      // group, client y paydesk
+      // paydesk.tryCall(client)
 
-      client.paydesk = paydesk;
       client.save(function(err) {
         ClientCaller(client, client.paydesk, client.paydesk.group).Call();
         res.json(client);
       });
-    })
 
-  })
+    });
+
+  });
+});
   // Group.findByPaydesk(req.params.id, function(err, group) {
 
   //   if (!group || err) return res.json(500, err);
@@ -127,6 +127,5 @@ router.get('/:id/clients/next', function(req, res) {
   //   });
 
   // });
-});
 
 module.exports = router;
