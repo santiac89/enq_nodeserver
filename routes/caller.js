@@ -6,13 +6,8 @@ var config = require('../config');
 var ClientCaller = require('../util/client_caller');
 
 router.get('/:id', function(req, res) {
-
-  Paydesk.findOne({ _id: req.params.id }).exec(function(err, paydesk) {
-
-    if (!paydesk) {
-      res.json(404,{});
-      return;
-    }
+  Paydesk.findOne({ _id: req.params.id }).populate('group').exec(function(err, paydesk) {
+    if (!paydesk) return res.json(404,{});
 
     var group = paydesk.group;
     var current_client = {};
@@ -20,34 +15,28 @@ router.get('/:id', function(req, res) {
 
     // TODO: Mover esta logica
     // if (paydesk.current_client.length > 0) {
-
     //   current_client.number = paydesk.current_client[0].number;
     //   current_client.enqueue_time = paydesk.current_client[0].enqueue_time;
     //   current_client.remain_to_arrive = 0;
-
+    //
     //   switch (paydesk.current_client[0].status) {
-
     //     case 'confirm':
     //      current_client.response = "Confirmado";
     //     break;
-
     //     case 'error':
     //       current_client.response = "ERROR";
     //     break;
-
     //     case 'cancelled':
     //       current_client.response = "Cancelado";
     //     break;
-
     //     default:
     //       current_client.response = "Reencolado";
     //     break;
     //   }
-
+    //
     //   if (paydesk.current_client[0].confirmed_time + (group.paydesk_arrival_timeout*1000) > Date.now()) {
     //     current_client.remain_to_arrive = Math.round((((group.paydesk_arrival_timeout*1000) + paydesk.current_client[0].confirmed_time) - Date.now())/1000);
     //   }
-
     // }
 
     // if (paydesk.called_client.length > 0) {
@@ -87,24 +76,17 @@ router.get('/:id/clients/next', function(req, res) {
 
     if (!paydesk.group || err) return res.json(500, err);
 
-    paydesk.group.getNextClientForPaydesk(req.params.id, function(err, client) {
-
-      if (!client || err) return res.json(500, err);
-
-      client.paydesk = paydesk
-
-      // group, client y paydesk
-      // paydesk.tryCall(client)
+    paydesk.fetchNextClient(function(err, client) {
+      if (err) return res.json(500, err);
+      if (!client) return res.json(200, {}); // No more clients to call
 
       client.save(function(err) {
-        ClientCaller(client, client.paydesk, client.paydesk.group).Call();
+        ClientCaller(client, paydesk, paydesk.group).Call();
         res.json(client);
       });
-
     });
 
   });
-});
   // Group.findByPaydesk(req.params.id, function(err, group) {
 
   //   if (!group || err) return res.json(500, err);
@@ -127,5 +109,6 @@ router.get('/:id/clients/next', function(req, res) {
   //   });
 
   // });
+});
 
 module.exports = router;

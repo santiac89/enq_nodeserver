@@ -13,11 +13,8 @@ var paydeskSchema = Schema({
 });
 
 paydeskSchema.methods.fetchNextClient = function(callback) {
-  redis.rpoplpush(`groups:#{this.group._id}:clients paydesk:#{this._id}:client_called`,
+  redis.rpoplpush(`groups:${this.group._id}:clients`, `paydesk:${this._id}:client_called`,
     function(err, client_id) {
-      console.log("fetchNextClient");
-      console.log(err);
-      console.log(client_id);
       if (err) return callback(err);
       Client.findOne({ _id: client_id }, callback);
     }
