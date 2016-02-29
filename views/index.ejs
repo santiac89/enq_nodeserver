@@ -23,7 +23,7 @@
     <div class="list-group">
       <a ng-repeat="paydesk in paydesks" href="/caller/{{paydesk._id}}">
         <button  type="button" class="list-group-item">
-          Caja: {{paydesk.number}} - Tipo de atención: {{paydesk.group_name}}
+          Caja: {{paydesk.number}} - Tipo de atención: {{paydesk.group.name}}
         </button>
       </a>
     </div>

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "prestart": "killall node ; killall mongod ; mongod --fork --dbpath ./data/db --logpath ./data/log",
-    "start": "node ./bin/www",
+    "start": "node --debug ./bin/www",
     "stop": "killall mongod"
   },
   "dependencies": {

@@ -22,7 +22,7 @@ var ClientCaller = function(client, paydesk, group) {
     client_tcp_conn.on('error', function(err) { self.OnSocketError(this , err); });
     client_tcp_conn.on('timeout', function() { self.OnSocketTimeout(this); });
     client_tcp_conn.on('close', function(had_error) { self.OnSocketClose(this, had_error); });
-    // client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
+    client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
   };
 
   this.OnSocketConnection = (socket) => {
@@ -34,18 +34,17 @@ var ClientCaller = function(client, paydesk, group) {
       }) + '\n';
 
       socket.write(call_message, 'UTF-8', function(err) {
-        socket.setTimeout(config.call_timeout*1000);
+
       });
 
   };
 
   this.OnSocketData = function(socket, response) {
 
-    socket.end();
-
     switch (response.toString()) {
       case "call_received":
         this.manager.OnClientCalled();
+        socket.setTimeout(config.call_timeout*1000);
       break;
       case "confirm":
         this.manager.OnClientConfirm();
@@ -76,22 +75,19 @@ var ClientCaller = function(client, paydesk, group) {
 
 
   this.OnSocketError = function(socket, err) {
+    console.log(err)
     console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " ERROR");
-    Group.errorClient(this.client._id, {
-      success: (client) => {
-        PaydeskBus.send(this.paydesk.number, "error");
-      }
-    });
+    PaydeskBus.send(this.paydesk.number, "error");
+
+    // Group.errorClient(this.client._id, {
+      // success: (client) => {
+      // }
+    // });
   };
 
-  // this.OnSocketEnd = function(socket, err) {
-  //   console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " END");
-  //   Group.errorClient(this.client._id, {
-  //     success: (client) => {
-  //       PaydeskBus.send(this.client.assigned_to, "error");
-  //     }
-  //   });
-  // };
+  this.OnSocketEnd = function(socket, err) {
+    console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " END");
+  };
 
   // this.OnSocketEnd = function(socket) {
   //   console.log("["+Date.now()+"] CLIENT SOCKET " + this.client.number + " CLOSED");

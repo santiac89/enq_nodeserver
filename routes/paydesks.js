@@ -1,33 +1,40 @@
 var express = require('express');
 var router = express.Router();
 var Group = require('../models/group');
+var Paydesk = require('../models/paydesk');
 
 router.get('/', function(req, res) {
 
-  Group.find({},'_id name paydesks').exec(function(err, groups) {
-
-    var paydesks = [];
-
-    for (i=0; i < groups.length; i++) {
-      for (o=0; o < groups[i].paydesks.length; o++) {
-
-        if (groups[i].paydesks[o].active) continue;
-
-        var paydesk = {};
-
-        paydesk._id =  groups[i].paydesks[o]._id;
-        paydesk.number = groups[i].paydesks[o].number;
-        paydesk.group_id = groups[i]._id;
-        paydesk.group_name = groups[i].name;
-
-        paydesks.push(paydesk);
-
-      }
-    }
-
+  Paydesk.find({}).populate('group').exec(function(err, paydesks) {
     res.json(paydesks);
-
   });
+
+  // Group.find({},'_id name paydesks').exec(function(err, groups) {
+
+
+
+  //   var paydesks = [];
+
+  //   for (i=0; i < groups.length; i++) {
+  //     for (o=0; o < groups[i].paydesks.length; o++) {
+
+  //       if (groups[i].paydesks[o].active) continue;
+
+  //       var paydesk = {};
+
+  //       paydesk._id =  groups[i].paydesks[o]._id;
+  //       paydesk.number = groups[i].paydesks[o].number;
+  //       paydesk.group_id = groups[i]._id;
+  //       paydesk.group_name = groups[i].name;
+
+  //       paydesks.push(paydesk);
+
+  //     }
+  //   }
+
+  //   res.json(paydesks);
+
+  // });
 
 });
 

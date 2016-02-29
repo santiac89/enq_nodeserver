@@ -77,13 +77,14 @@ router.get('/:id/clients/next', function(req, res) {
     if (!paydesk.group || err) return res.json(500, err);
 
     paydesk.fetchNextClient(function(err, client) {
-      if (err) return res.json(500, err);
-      if (!client) return res.json(200, {}); // No more clients to call
 
-      client.save(function(err) {
-        ClientCaller(client, paydesk, paydesk.group).Call();
-        res.json(client);
-      });
+      if (err) return res.json(500, err);
+
+      if (!client) return res.json(404, {}); // No more clients to call
+
+      ClientCaller(client, paydesk, paydesk.group).Call();
+      res.json(client);
+
     });
 
   });

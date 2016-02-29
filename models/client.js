@@ -74,10 +74,11 @@ Client.findOrCreate = function(client_info, callback) {
     if (!client) {
       client = new Client(client_info);
       client.save(callback);
+    } else {
+      client.ip = client_info.ip
+      client.number - client_info.number;
+      client.save(callback)
     }
-
-    callback(undefined, client);
-
   });
 }
 

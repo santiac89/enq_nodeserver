@@ -32,11 +32,11 @@ var PaydeskBus = {
       //   },25000);
       // });
 
-      // socket.once('disconnect', () => {
-      //   disconnected_socket = this.sockets_pool.find((sock) => { return sock.id == socket.id });
-      //   this.sockets_pool = this.sockets_pool.filter((sock) => { return sock.id != socket.id });
-      //   this.disablePaydesk(disconnected_socket.paydesk_id);
-      // });
+      socket.once('disconnect', () => {
+        disconnected_socket = this.sockets_pool.find((sock) => { return sock.id == socket.id });
+        this.sockets_pool = this.sockets_pool.filter((sock) => { return sock.id != socket.id });
+        // this.disablePaydesk(disconnected_socket.paydesk_id);
+      });
 
     });
 

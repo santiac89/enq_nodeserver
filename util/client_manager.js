@@ -14,33 +14,35 @@ var ClientManager = function(client, paydesk, group) {
   this.OnClientCalled = function() {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " HELLO!");
     this.client.setCalledBy(this.paydesk.number);
-    this.client.save((err, client) => {
+    this.client.save();
+    // (err, client) => {
+    //   console.log("SAVED!")
       PaydeskBus.send(this.paydesk.number, "call_received");
       Emitter.clientCalled(client, this.paydesk);
-    });
+    // });
   }
 
 
   this.OnClientConfirm = function() {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [confirm]");
     this.client.setConfirmed();
-    this.client.save((err, client) => {
-      this.paydesk.removeCalledClient(this.client)
-      PaydeskBus.send(this.paydesk.number, "confirmed");
-      Emitter.clientConfirm(client, this.paydesk);
-    });
+    this.client.save();//(err, client) => {
+    this.paydesk.removeCalledClient(this.client)
+    PaydeskBus.send(this.paydesk.number, "confirmed");
+    Emitter.clientConfirm(client, this.paydesk);
+    // });
   }
 
   this.OnClientCancel = function() {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [cancel]");
     this.client.setCancelled();
-
-    this.client.save((err, client) => {
+    this.client.save();
+    // (err, client) => {
       this.paydesk.removeCalledClient(this.client);
       PaydeskBus.send(this.paydesk.number, "cancelled");
       Emitter.clientCancel(client, this.paydesk);
       // el cliente queda fuera de cualquier cola (esta guardado en la collección de `clients`)
-    });
+    // });
   };
 
   this.OnClientReenqueue = function(reason) {
