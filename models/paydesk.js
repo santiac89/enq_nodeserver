@@ -12,17 +12,20 @@ var paydeskSchema = Schema({
 
 });
 
-paydeskSchema.method.fetchNextClient = function(callback) {
+paydeskSchema.methods.fetchNextClient = function(callback) {
   redis.rpoplpush(`groups:#{this.group._id}:clients paydesk:#{this._id}:client_called`,
     function(err, client_id) {
+      console.log("fetchNextClient");
+      console.log(err);
+      console.log(client_id);
       if (err) return callback(err);
       Client.findOne({ _id: client_id }, callback);
     }
   );
 }
 
-paydeskSchema.method.removeCalledClient = function(client, callback) {
-  redis.lrem(`paydesks:${this._id}:client_called 0 ${client._id}`, callback);
+paydeskSchema.methods.removeCalledClient = function(client, callback) {
+  redis.lrem(`paydesks:${this._id}:client_called`,`0` ,`${client._id}`, callback);
 }
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);

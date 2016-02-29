@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "prestart": "mongod --fork --dbpath ./data/db --logpath ./data/log",
+    "prestart": "killall node ; killall mongod ; mongod --fork --dbpath ./data/db --logpath ./data/log",
     "start": "node ./bin/www",
     "stop": "killall mongod"
   },
@@ -25,6 +25,10 @@
     "passport" : "~0.3.0",
     "passport-local" : "~1.0.0",
     "express-session" : "~1.11.3",
-    "passport-local-mongoose" : "~3.0.0"
+    "passport-local-mongoose" : "~3.0.0",
+    "connect-mongo": "*",
+    "bluebird": "*",
+    "kerberos": "*",
+    "redis": "*"
   }
 }

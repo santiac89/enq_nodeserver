@@ -12,6 +12,7 @@ var ClientCaller = function(client, paydesk, group) {
   this.client  = client;
   this.paydesk = paydesk;
   this.group   = group;
+
   this.manager = ClientManager(client, paydesk, group);
 
   this.Call = () => {
@@ -24,12 +25,12 @@ var ClientCaller = function(client, paydesk, group) {
     // client_tcp_conn.on('end', function() { self.OnSocketEnd(this); });
   };
 
-  this.OnSocketConnection = function(socket) {
+  this.OnSocketConnection = (socket) => {
 
       var call_message = JSON.stringify({
         paydesk_number: this.paydesk.number,
         reenqueue_count: this.client.reenqueue_count,
-        next_estimated_time: this.client.next_estimated_time
+        next_estimated_time: 0
       }) + '\n';
 
       socket.write(call_message, 'UTF-8', function(err) {

@@ -1,6 +1,6 @@
 var mongoose = require('mongoose');
 var uniqueValidator = require('mongoose-unique-validator');
-var clientSchema = require('./client');
+var Client = require('./client');
 var paydeskSchema = require('./paydesk');
 var redis = require("redis").createClient();
 var Schema = mongoose.Schema;
@@ -51,7 +51,7 @@ groupSchema.methods.enqueueClient = function(client, callback) {
 }
 
 groupSchema.methods.getNextClientForPaydesk = function(paydesk_id, callback) {
-  redis.rpoplpush(`groups:#{this._id}:clients paydesk:#{paydesk_id}:client_called`,
+  redis.rpoplpush(`groups:${this._id}:clients`,`paydesk:${paydesk_id}:client_called`,
     function(err, client_id) {
       if (err) return callback(err);
       Client.findOne({ _id: client_id }, callback);
@@ -414,8 +414,8 @@ Group.findPaydesk = function(paydesk_id) {
   );
 }
 
-Group.findByPaydesk = function(id) {
-  return this.findOne({ "paydesks._id": id });
+Group.findByPaydesk = function(id, callback) {
+  this.findOne({ "paydesks._id": id }, callback);
 };
 
 
