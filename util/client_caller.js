@@ -3,6 +3,7 @@ var config = require('../config');
 var net = require('net');
 var Group = require('../models/group');
 var ClientManager = require('./client_manager');
+var Emitter = require('../models/event');
 
 var ClientCaller = function(client, paydesk, group) {
 
@@ -63,7 +64,7 @@ var ClientCaller = function(client, paydesk, group) {
   this.OnSocketClose = function(socket, had_error) {
     console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " CLOSED " + (had_error ? "WITH ERROR" : ""));
     if (had_error) {
-      this.OnSocketError(socket);
+      this.OnSocketError(socket, had_error);
     }
   }
 
@@ -77,12 +78,10 @@ var ClientCaller = function(client, paydesk, group) {
   this.OnSocketError = function(socket, err) {
     console.log(err)
     console.log("["+Date.now()+"] SERVER SOCKET " + this.client.number + " ERROR");
+    if (err.code == 'ECONNREFUSED') {
+      Emitter.clientUnreachable(this.client, this.paydesk, err);
+    } // log other errors
     PaydeskBus.send(this.paydesk.number, "error");
-
-    // Group.errorClient(this.client._id, {
-      // success: (client) => {
-      // }
-    // });
   };
 
   this.OnSocketEnd = function(socket, err) {
