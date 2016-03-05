@@ -5,11 +5,8 @@ var Client = require('./client');
 
 var paydeskSchema = Schema({
   number: { type: Number, required: true },
-  // current_client:  [clientSchema],
-  // called_client:  [clientSchema],
   active: { type: Boolean, default: false },
   group:  { type: Schema.Types.ObjectId, ref: 'Group' }
-
 });
 
 paydeskSchema.methods.fetchNextClient = function(callback) {
@@ -26,7 +23,7 @@ paydeskSchema.methods.fetchNextClient = function(callback) {
 }
 
 paydeskSchema.methods.removeCalledClient = function(client, callback) {
-  redis.lrem(`paydesks:${this._id}:client_called`,`0` ,`${client._id}`, callback);
+  redis.lrem(`paydesks:${this._id}:client_called`, `0`, `${client._id}`, callback);
 }
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);

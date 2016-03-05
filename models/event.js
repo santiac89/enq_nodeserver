@@ -14,8 +14,6 @@ var eventSchema = Schema({
 
 var Event = mongoose.model('Event', eventSchema);
 
-// module.exports = Event;
-
 // To be moved elsewhere
 var Emitter = {
   createEvent: function(eventName, client, payload) {

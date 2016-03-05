@@ -34,7 +34,7 @@ clientSchema.methods.setConfirmed = function() {
 
 clientSchema.methods.setCalledBy = function(paydesk_number) {
   this.status = 'called';
-  this.called_by = paydesk_number;
+  this.paydesk = paydesk_number;
   this.called_time = Date.now();
   return this;
 }

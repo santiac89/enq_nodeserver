@@ -30,7 +30,6 @@ router.put('/:id', function(req, res) {
     var newGroup = new Group(req.body);
     group.name = newGroup.name;
     group.paydesk_arrival_timeout = newGroup.paydesk_arrival_timeout;
-    console.log(group);
     group.save(function(err,group) {
       if (err) res.json(500,err);
       res.json(group);

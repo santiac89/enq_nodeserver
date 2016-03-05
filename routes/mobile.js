@@ -11,7 +11,7 @@ router.get('/groups', function(req, res) {
 });
 
 router.delete('/clients/:id', function(req, res) {
-  Client.findOne({ _id: req.params.id }).then(function(client) {
+  Client.findOne({ _id: req.params.id }).populate("group").exec(function(err, client) {
     client.group.removeClient(client);
     client.saveToHistory();
     client.remove();
@@ -41,7 +41,7 @@ router.post('/groups/:id/clients', function(req, res) {
 
         group.enqueueClient(client, function(err) {
 
-          client.group_id = group._id;
+          client.group = group;
           client.save();
 
           res.json({

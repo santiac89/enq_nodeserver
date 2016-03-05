@@ -5,6 +5,7 @@ var Paydesk = require('../models/paydesk');
 
 router.get('/', function(req, res) {
   Paydesk.find({}).populate('group').exec(function(err, paydesks) {
+    if (!paydesks || err) return res.json(404, err);
     res.json(paydesks);
   });
 });
@@ -14,8 +15,7 @@ router.get('/:id', function(req, res) {
   if (!req.user) res.redirect('/');
 
   Paydesk.findOne(req.params.id).populate('group').exec(function(err, paydesk) {
-    if (!paydesk) return res.json(404, err);
-
+    if (!paydesk || err) return res.json(404, err);
     res.json(paydesk);
   });
 
