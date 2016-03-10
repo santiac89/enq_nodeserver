@@ -10,57 +10,28 @@ router.get('/:id', function(req, res) {
     if (!paydesk) return res.json(404,{});
 
     var group = paydesk.group;
-    var current_client = {};
-    var called_client = {};
+    var current_client = paydesk.confirmed_client;
+    var called_client  = paydesk.called_client;
+    var now = Date.now();
 
-    // TODO: Mover esta logica
-    if (paydesk.current_client.length > 0) {
-
-      current_client.number = paydesk.current_client[0].number;
-      current_client.enqueue_time = paydesk.current_client[0].enqueue_time;
-      current_client.remain_to_arrive = 0;
-
-      switch (paydesk.current_client[0].status) {
-        case 'confirm':
-         current_client.response = "Confirmado";
-        break;
-        case 'error':
-          current_client.response = "ERROR";
-        break;
-        case 'cancelled':
-          current_client.response = "Cancelado";
-        break;
-        default:
-          current_client.response = "Reencolado";
-        break;
-      }
-
-      if (paydesk.current_client[0].confirmed_time + (group.paydesk_arrival_timeout*1000) > Date.now()) {
-        current_client.remain_to_arrive = Math.round((((group.paydesk_arrival_timeout*1000) + paydesk.current_client[0].confirmed_time) - Date.now())/1000);
-      }
+    if (current_client && (current_client.arrivalTime(group.paydesk_arrival_timeout) > now)) {
+      current_client.remain_to_arrive = current_client.remainingSecondsToArrive(now, group.paydesk_arrival_timeout)
     }
 
-    if (paydesk.called_client.length > 0) {
-
-      called_client.number = paydesk.called_client[0].number;
-      called_client.enqueue_time = paydesk.called_client[0].enqueue_time;
-      called_client.remain_to_response = 0;
-
-      if (paydesk.called_client[0].called_time + (config.call_timeout*1000) > Date.now()) {
-        called_client.remain_to_response =  Math.round((((config.call_timeout*1000) + paydesk.called_client[0].called_time) - Date.now())/1000);
-      }
-
+    if (called_client && (called_client.toleranceCallTime(config.call_timeout) > now)) {
+      called_client.remain_to_response = called_client.remainingSecondsToReenqueue(now, config.call_timeout)
     }
 
-    res.render('caller',{
+    var response = {
       group: group,
       paydesk: paydesk,
       user: req.user,
       call_timeout: config.call_timeout,
-      current_client: current_client,
-      called_client: called_client
-    });
+      current_client: current_client || {},
+      called_client: called_client || {}
+    };
 
+    res.render('caller', response);
   });
 
 });

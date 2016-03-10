@@ -21,7 +21,7 @@ var ClientManager = function(client, paydesk, group) {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [confirm]");
     this.client.setConfirmed();
     this.client.save();
-    this.paydesk.removeCalledClient(this.client)
+    this.paydesk.waitForClient(this.client);
     PaydeskBus.send(this.paydesk.number, "confirmed");
     Emitter.clientConfirm(client, this.paydesk);
   }

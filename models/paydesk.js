@@ -6,24 +6,43 @@ var Client = require('./client');
 var paydeskSchema = Schema({
   number: { type: Number, required: true },
   active: { type: Boolean, default: false },
-  group:  { type: Schema.Types.ObjectId, ref: 'Group' }
+  group:  { type: Schema.Types.ObjectId, ref: 'Group' },
+  confirmed_client: { type: mongoose.Schema.Types.ObjectId, ref: 'Client' },
+  called_client:    { type: mongoose.Schema.Types.ObjectId, ref: 'Client' }
 });
 
+paydeskSchema.methods.fetchNextClientFromQueue = function(callback) {
+  redis.rpop(`groups:${this.group._id}:clients`, (err, client_id) => {
+    if (err) return callback(err);
+    Client.findOneAndUpdate(
+      { _id: client_id },
+      { $set: { paydesk: this._id } },
+      { new: true },
+      callback
+    );
+  });
+}
+
 paydeskSchema.methods.fetchNextClient = function(callback) {
-  redis.rpoplpush(`groups:${this.group._id}:clients`, `paydesk:${this._id}:client_called`,
-    (err, client_id) => {
-      if (err) return callback(err);
-      Client.findOneAndUpdate(
-        { _id: client_id },
-        { $set: { paydesk: this._id } },
-        { new: true },
-         callback);
-    }
-  );
+  this.fetchNextClientFromQueue((err, client) => {
+    if (err) return callback(err);
+
+    this.called_client = client;
+    this.save();
+
+    callback(err, client);
+  });
+}
+
+paydeskSchema.methods.waitForClient = function(client, callback) {
+  this.confirmed_client = client;
+  this.called_client = null; // remove called client
+  this.save();
 }
 
 paydeskSchema.methods.removeCalledClient = function(client, callback) {
-  redis.lrem(`paydesks:${this._id}:client_called`, `0`, `${client._id}`, callback);
+  this.called_client = null;
+  this.save();
 }
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);

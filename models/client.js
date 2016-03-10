@@ -64,6 +64,27 @@ clientSchema.methods.saveToHistory = function() {
   return historical;
 }
 
+clientSchema.methods.arrivalTime = function(offset_in_seconds) {
+  // use es6 default parameters (https://babeljs.io/docs/learn-es2015/#default-rest-spread)
+  if (!offset_in_seconds) offset_in_seconds = 60;
+  return this.confirmed_time + (offset_in_seconds * 1000);
+}
+
+clientSchema.methods.remainingSecondsToArrive = function(test_time, offset_in_seconds) {
+  if (!offset_in_seconds) offset_in_seconds = 60;
+  return Math.round((this.arrivalTime(offset_in_seconds) - test_time)/1000);
+}
+
+clientSchema.methods.toleranceCallTime = function(offset_in_seconds) {
+  if (!offset_in_seconds) offset_in_seconds = 60;
+  return this.called_time + (offset_in_seconds * 1000);
+}
+
+clientSchema.methods.remainingSecondsToReenqueue = function(test_time, offset_in_seconds) {
+  if (!offset_in_seconds) offset_in_seconds = 60;
+  return Math.round((this.toleranceCallTime(offset_in_seconds) - test_time)/1000);
+}
+
 var Client = mongoose.model('Client', clientSchema);
 
 Client.findOrCreate = function(client_info, callback) {

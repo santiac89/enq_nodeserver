@@ -63,7 +63,7 @@
   </div>
 
   <div class="row" style="text-align: center; margin-top: 15px;">
-    <a href="#"  id="call_button" class="btn btn-primary" ng-click="callNext()">Llamar próximo</a>
+    <a id="call_button" class="btn btn-primary" ng-click="callNext()">Llamar próximo</a>
   </div>
 
   <div class="modal fade" id="timeoutModal" data-backdrop="static">
@@ -168,9 +168,9 @@
 
       $scope.reloadStatus = function() {
 
-        $scope.paydesk = JSON.parse("<%= JSON.stringify(paydesk) %>".replace(/&quot;/g, '"'));
-        $scope.current_client =  JSON.parse("<%= JSON.stringify(current_client) %>".replace(/&quot;/g, '"'));
-        $scope.called_client =  JSON.parse("<%= JSON.stringify(called_client) %>".replace(/&quot;/g, '"'));
+        $scope.paydesk        = <%- JSON.stringify(paydesk) %>;
+        $scope.current_client = <%- JSON.stringify(current_client) %>;
+        $scope.called_client  = <%- JSON.stringify(called_client) %>;
 
         if ($scope.current_client.remain_to_arrive > 0) {
            $scope.startArrivalTimeout($scope.current_client.remain_to_arrive);
