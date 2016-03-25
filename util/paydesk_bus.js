@@ -1,6 +1,7 @@
 var events = require('events');
 // var event_bus = new events.EventEmitter();
 var Group = require('../models/group');
+var Paydesk = require('../models/paydesk');
 
 var PaydeskBus = {
 
@@ -31,11 +32,11 @@ var PaydeskBus = {
       //   },25000);
       // });
 
-      // socket.once('disconnect', () => {
-      //   disconnected_socket = this.sockets_pool.find((sock) => { return sock.id == socket.id });
-      //   this.sockets_pool = this.sockets_pool.filter((sock) => { return sock.id != socket.id });
-      //   this.disablePaydesk(disconnected_socket.paydesk_id);
-      // });
+      socket.once('disconnect', () => {
+        disconnected_socket = this.sockets_pool.find((sock) => { return sock.id == socket.id });
+        this.sockets_pool = this.sockets_pool.filter((sock) => { return sock.id != socket.id });
+        // this.disablePaydesk(disconnected_socket.paydesk_id);
+      });
 
     });
 
@@ -44,22 +45,22 @@ var PaydeskBus = {
 
   send: function(paydesk_number, message_string) {
     socket = this.sockets_pool.find((element) => { return element.paydesk_number == paydesk_number });
-    if (socket) socket.emit('client_response', { message: message_string });
+    if (socket) socket.emit('server_message', { message: message_string });
   },
 
   disablePaydesk: function(paydesk_id) {
-    Group.findByPaydesk(paydesk_id).exec(function(err, group) {
-      group.paydesks.id(paydesk_id).active = false;
-      group.save();
-      console.log("Paydesk " + group.paydesks.id(paydesk_id).number + " deactivated.");
+    Paydesk.findOne({ _id: paydesk_id }).exec(function(err, paydesk) {
+      paydesk.active = false;
+      paydesk.save();
+      console.log("Paydesk " + paydesk.number + " deactivated.");
     });
   },
 
   enablePaydesk: function(paydesk_id) {
-    Group.findByPaydesk(paydesk_id).exec(function(err, group) {
-      group.paydesks.id(paydesk_id).active = true;
-      group.save();
-      console.log("Paydesk " + group.paydesks.id(paydesk_id).number + " activated.");
+    Paydesk.findOne({ _id: paydesk_id }).exec(function(err, paydesk) {
+      paydesk.active = true;
+      paydesk.save();
+      console.log("Paydesk " + paydesk.number + " activated.");
     });
   }
 

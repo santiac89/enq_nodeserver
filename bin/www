@@ -11,8 +11,8 @@ var Counter = require('../models/counter');
 
 app.set('port', config.server_port);
 
-var child = fork('./util/service_broadcaster.js', [config.server_port]);
-child.on('message', function(data) { console.log(data); });
+var child = fork('./util/service_broadcaster.js', [config.server_port], {execArgv: ['--debug=5859']});
+// child.on('message', function(data) { console.log(data); });
 
 process.on('SIGINT', function() {
 	mongoose.connection.close(function () {

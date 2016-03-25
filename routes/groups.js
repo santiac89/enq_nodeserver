@@ -1,6 +1,7 @@
 var express = require('express');
-var router = express.Router();
-var Group = require('../models/group');
+var router  = express.Router();
+var Group   = require('../models/group');
+var Paydesk = require('../models/paydesk');
 
 router.get('/', function(req, res) {
   Group.find({} ,function(err,groups) {
@@ -29,7 +30,6 @@ router.put('/:id', function(req, res) {
     var newGroup = new Group(req.body);
     group.name = newGroup.name;
     group.paydesk_arrival_timeout = newGroup.paydesk_arrival_timeout;
-    console.log(group);
     group.save(function(err,group) {
       if (err) res.json(500,err);
       res.json(group);
@@ -73,17 +73,21 @@ router.post('/:id/paydesks', function(req, res) {
       return;
     }
 
-    group.paydesks.push(req.body);
-
-    group.save(function(err) {
-
-      if (err)
-        res.json(500,err);
-      else
-        res.json(group.paydesks[group.paydesks.length -1]);
-
+    var paydesk = new Paydesk({
+      number: req.body.number,
+      active: true,
+      group: group
     });
 
+    paydesk.save(function(err, paydesk) {
+      group.paydesks.push(paydesk._id);
+      group.save(function(err) {
+        if (err)
+          res.json(500, err);
+        else
+          res.json(paydesk);
+      });
+    })
   });
 });
 
