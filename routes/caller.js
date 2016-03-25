@@ -6,7 +6,7 @@ var config = require('../config');
 var ClientCaller = require('../util/client_caller');
 
 router.get('/:id', function(req, res) {
-  Paydesk.findOne({ _id: req.params.id }).populate('group').exec(function(err, paydesk) {
+  Paydesk.findOne({ _id: req.params.id }).populate('group confirmed_client called_client').exec(function(err, paydesk) {
     if (!paydesk) return res.json(404,{});
 
     var group = paydesk.group;
@@ -14,10 +14,12 @@ router.get('/:id', function(req, res) {
     var called_client  = paydesk.called_client;
     var now = Date.now();
 
+    console.log(current_client)
     if (current_client && (current_client.arrivalTime(group.paydesk_arrival_timeout) > now)) {
       current_client.remain_to_arrive = current_client.remainingSecondsToArrive(now, group.paydesk_arrival_timeout)
     }
 
+    console.log(called_client)
     if (called_client && (called_client.toleranceCallTime(config.call_timeout) > now)) {
       called_client.remain_to_response = called_client.remainingSecondsToReenqueue(now, config.call_timeout)
     }

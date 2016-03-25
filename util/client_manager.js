@@ -39,6 +39,7 @@ var ClientManager = function(client, paydesk, group) {
     console.log("["+Date.now()+"] CLIENT " + this.client.number + " RESPONSE [reenqueue="+ reason +"]");
 
     this.client.setReenqueued(reason);
+    this.client.save();
     this.paydesk.removeCalledClient(this.client);
 
     Emitter.clientRemovedFromPaydesk(this.client, this.paydesk, reason);
