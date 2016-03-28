@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>EnQ Admin</title>
+    <link rel='stylesheet' href='/bootstrap/css/bootstrap.min.css' />
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/font-awesome.css' />
+    <script src='/javascripts/jquery-2.1.4.min.js' ></script>
+    <script src='/bootstrap/js/bootstrap.min.js' ></script>
+    <script src='/javascripts/angular.min.js' ></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+    <div class="container-fluid">
+      <div class="row">
+
+        <nav class="navbar navbar-default navbar-inverse">
+          <div class="container-fluid">
+            <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#actions-navbar" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+              <a class="navbar-brand" href="#">
+                EnQ
+              </a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="actions-navbar">
+            <ul class="nav navbar-nav navbar-right">
+              <% if (user.role == "admin") { %>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                  <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                  Editar
+                  <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="/admin/users">Usuarios</a></li>
+                  <li><a href="/admin/groups">Grupos</a></li>
+                  <li><a href="/admin/paydesks">Cajas</a></li>
+                </ul>
+              </li>
+              <li>
+                <a href="admin/reset">
+                  <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
+                  Reiniciar
+                </a>
+              </li>
+              <% } %>
+              <li>
+                <a href="#">
+                  <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                  Salir
+                </a>
+              </li>
+            </ul>
+            </div>
+          </div>
+
+        </nav>
+
+
+      </div>
+
+    <%- body %>
+
+    </div>
+</body>
+</html>

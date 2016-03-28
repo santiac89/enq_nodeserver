@@ -1,33 +1,28 @@
-<% layout('./layouts/layout') -%>
+<% layout('./layouts/navbar-layout') -%>
 <!-- TODO Agregar validaciones a los campos, chequear cajas duplicadas o agregadas a otros grupos, permitir editar grupos -->
-<div class="container-fluid" ng-app="Index" ng-controller="indexController" ng-init="refresh()">
-<div class="row row-underline">
-<div class="row" style="float: left;">
-<h1>
-  Selección de caja
-</h1>
-</div>
-<% if (user.role == "admin") { %>
-<div class="row" style="float: right;">
-      <% if (user.username == "admin") { %>
-        <a class="btn btn-primary" href="/admin/reset">Reiniciar</a>
-        <a class="btn btn-primary" href="/admin/users">Administrar Usuarios</a>
-      <% } %>
-      <a class="btn btn-primary" href="/admin/groups">Administrar Grupos</a>
-      <a class="btn btn-primary" href="/admin/paydesks">Administrar Cajas</a>
-      </div>
-<% } %>
-  </div>
+<div ng-app="Index" ng-controller="indexController" ng-init="refresh()">
 
-
-    <div class="list-group">
-      <a ng-repeat="paydesk in paydesks" href="/caller/{{paydesk._id}}">
-        <button  type="button" class="list-group-item">
-          Caja: {{paydesk.number}} - Tipo de atención: {{paydesk.group.name}}
-        </button>
-      </a>
+  <div class="row">
+    <div class="header-title">
+      <p class="text-center extra-big">
+        Cajas
+      </p>
     </div>
   </div>
+
+    <div class="btn-group-vertical" role="group" style="width: 100%">
+      <a ng-repeat="paydesk in paydesks" href="/caller/{{paydesk._id}}" class="btn btn-default" >
+        <p class="text-left" style="margin:0">
+          <span class="label label-primary">{{paydesk.number}}</span>
+          <span >{{paydesk.group.name}}</span>
+        </p>
+      </a>
+    </div>
+
+    <div class="list-group">
+
+    </div>
+</div>
   <script type="text/javascript">
     var app = angular.module('Index', []);
     app.controller('indexController', function($scope,$http) {
@@ -41,13 +36,4 @@
         }
     })
   </script>
-
-<style type="text/css">
-
-  .row {
-    font-size: 50px;
-    text-align: center;
-  }
-
-</style>
 

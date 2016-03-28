@@ -10,15 +10,45 @@
 
 .header {
   width: 100%;
-  height: 100px;
+  height: 10%;
   background: #007CDC;
   color: white;
-  padding: 20px;
+  /*padding: 20px;*/
 }
 
-.header img {
+.header img.logo  {
+  height: 40px;
+  background-color: #007CDC;
+}
 
-  height: 60px;
+a.navbar-brand img {
+  height: 100%;
+}
+
+.header-title {
+  padding-left: 2%;
+  padding-right: 2%;
+}
+
+.small {
+  font-size: 15px;
+}
+
+.medium {
+  font-size: 20px;
+}
+
+.big {
+  font-size: 20px;
+}
+
+.extra-big {
+  font-size: 30px;
+}
+
+/*.header .btn-logo  {
+  background-color: #007CDC;
+  background-image: none
 }
 
 .header div.logout {
@@ -27,14 +57,14 @@
 }
 
 div.content {
-  padding: 50px;
-}
-
+  margin-top: 50px;
+}*/
+/*
 div.row.row-underline {
    border-bottom: 3px solid #007CDC;
    margin-bottom: 20px;
 
-}
+}*/
 
 .paydesk_header {
   border-bottom: 2px solid #007CDC;
@@ -42,17 +72,21 @@ div.row.row-underline {
 
 .bold {
   font:  "Comfortaa-Bold", Helvetica, Arial, sans-serif;
-  font-size: 25px;
+  /*font-size: 25px;*/
 }
 
-.green {
+.colored {
   color: #007CDC;
 }
 
 body {
-  padding: 0px;
+  /*padding: 0px;*/
   font-family: "Comfortaa", Helvetica, Arial, sans-serif;
 
+}
+
+span.label {
+  font-family: sans-serif;
 }
 
 a {
