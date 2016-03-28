@@ -50,45 +50,21 @@ router.delete('/:id', function(req, res) {
   });
 });
 
-router.get('/:id/paydesks', function(req, res) {
+// router.get('/:id/paydesks', function(req, res) {
 
-  Group.findOne({ _id: req.params.id }).exec(function(err, group) {
+//   Group.findOne({ _id: req.params.id }).exec(function(err, group) {
 
-    if (!group) {
-      res.json(404,{});
-      return;
-    }
+//     if (!group) {
+//       res.json(404,{});
+//       return;
+//     }
 
-    res.json(group.paydesks);
+//     res.json(group.paydesks);
 
-  });
+//   });
 
-});
+// });
 
-router.post('/:id/paydesks', function(req, res) {
-  Group.findOne({ _id: req.params.id }).exec(function(err, group) {
 
-    if (!group) {
-      res.json(404,{});
-      return;
-    }
-
-    var paydesk = new Paydesk({
-      number: req.body.number,
-      active: true,
-      group: group
-    });
-
-    paydesk.save(function(err, paydesk) {
-      group.paydesks.push(paydesk._id);
-      group.save(function(err) {
-        if (err)
-          res.json(500, err);
-        else
-          res.json(paydesk);
-      });
-    })
-  });
-});
 
 module.exports = router;

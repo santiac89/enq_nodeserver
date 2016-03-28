@@ -32,6 +32,39 @@ router.delete('/:id', function(req, res) {
   });
 });
 
+router.post('/', function(req, res) {
+  Group.findOne({ _id: req.body.group }).exec(function(err, group) {
 
+    if (!group) return res.json(404,{ msg: `No group for that id`});
+
+    var paydesk = new Paydesk({
+      number: req.body.number,
+      active: true,
+      group: req.body.group
+    });
+
+    paydesk.save(function(err, paydesk) {
+      if (err) return res.json(500, err);
+      res.json(paydesk);
+    });
+
+  });
+});
+
+router.put('/:id', function(req, res) {
+  Paydesk.findOne({_id: req.params.id }).exec(function(err,paydesk) {
+
+    if (!paydesk) return res.json(404,{});
+
+    paydesk.number = req.body.number;
+    paydesk.group = req.body.group;
+
+    paydesk.save(function(err, paydesk) {
+      if (err) return res.json(500, err);
+      res.json(paydesk);
+    });
+
+  });
+});
 
 module.exports = router;
