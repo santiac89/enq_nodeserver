@@ -72,11 +72,11 @@ User.findOne({ username: "admin" }).exec(function(err, user) {
     return;
   }
 
-  user.setPassword(config.admin.password, function() {
-    user.save(function(err) {
-      console.log("Admin user updated!");
-    });
-  });
+  // user.setPassword(config.admin.password, function() {
+  //   user.save(function(err) {
+  //     console.log("Admin user updated!");
+  //   });
+  // });
 
 });
 

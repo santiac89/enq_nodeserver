@@ -18,7 +18,8 @@
         <thead>
           <th>Numero</th>
           <th>Tipo de atención</th>
-          <!-- <th>Editar</th> -->
+          <th></th>
+          <th></th>
         </thead>
         <tbody>
 
@@ -48,7 +49,7 @@
               <label for="inputNumber">Numero de caja</label>
               <input type="number" class="form-control" id="inputNumber" placeholder="Numero de caja" ng-model="paydesk.number">
               <label for="inputGroup">Tipo de atencion</label>
-              <select id="selectGroup" class="form-control" ng-model="paydesk.group">
+              <select id="selectGroup" class="form-control" ng-model="paydesk.group._id">
                 <% groups.forEach(function(group) { %>
                   <option value="<%= group._id %>"><%= group.name %></option>
                 <% }); %>
@@ -116,7 +117,6 @@
       $scope._edit = function(paydesk) {
         $scope.isnew = false;
         $scope.paydesk = paydesk;
-        // $scope.group = paydesk.group._id;
         $('#paydeskEditModal').modal();
       }
 

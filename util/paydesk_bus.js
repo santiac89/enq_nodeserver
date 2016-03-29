@@ -1,6 +1,3 @@
-var events = require('events');
-// var event_bus = new events.EventEmitter();
-var Group = require('../models/group');
 var Paydesk = require('../models/paydesk');
 
 var PaydeskBus = {
@@ -16,7 +13,6 @@ var PaydeskBus = {
       socket.once('hello', (data) => {
         socket.paydesk_id = data.paydesk_id;
         socket.paydesk_number = data.paydesk_number;
-
         this.sockets_pool.push(socket);
         this.enablePaydesk(data.paydesk_id);
 
@@ -35,13 +31,12 @@ var PaydeskBus = {
       socket.once('disconnect', () => {
         disconnected_socket = this.sockets_pool.find((sock) => { return sock.id == socket.id });
         this.sockets_pool = this.sockets_pool.filter((sock) => { return sock.id != socket.id });
-        // this.disablePaydesk(disconnected_socket.paydesk_id);
+        this.disablePaydesk(disconnected_socket.paydesk_id);
       });
 
     });
 
   },
-
 
   send: function(paydesk_number, message_string) {
     socket = this.sockets_pool.find((element) => { return element.paydesk_number == paydesk_number });
@@ -50,6 +45,7 @@ var PaydeskBus = {
 
   disablePaydesk: function(paydesk_id) {
     Paydesk.findOne({ _id: paydesk_id }).exec(function(err, paydesk) {
+      if (!paydesk || err) return;
       paydesk.active = false;
       paydesk.save();
       console.log("Paydesk " + paydesk.number + " deactivated.");

@@ -33,20 +33,10 @@ client.on("message", function(message, rinfo) {
     this.write(response, 'UTF-8', (err) => { this.end(); });
   });
 
-  client_socket.on('timeout', () => {
-    client_socket.end();
-  });
-
-  client_socket.on('error' , (err) => {
-    client_socket.end();
-  });
+  client_socket.on('timeout', () => { client_socket.end(); });
+  client_socket.on('error' , (err) => { client_socket.end(); });
 
 });
 
-client.on("error", function(err) {
-  console.log(err);
-});
-
-client.on("timeout", function() {
-  console.log("Timeout");
-});
+client.on("error", function(err) { console.log(err); });
+client.on("timeout", function() { console.log("Timeout"); });

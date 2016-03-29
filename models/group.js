@@ -10,31 +10,7 @@ var groupSchema = Schema({
     name: { type: String, required: true , unique: true},
     confirmed_clients:  { type: Number, default: 0 },
     confirmed_times:  { type: Number, default: 0 }
-    // paydesks_count:  { type: Number, default: 0 }
-    // paydesks:  [{ type: Schema.Types.ObjectId, ref: 'Paydesk' }],
 });
-
-// groupSchema.pre('save', function(next) {
-//   this.paydesks_count = this.paydesks.length;
-//   next();
-// });
-
-// groupSchema.methods.removePaydesk = function(paydesk_id) {
-//   var paydesk = this.paydesks.id(paydesk_id);
-//   paydesk.remove();
-//   return paydesk;
-// };
-
-// groupSchema.methods.clientIsUnique = function(client) {
-
-//   for (i=0; i < this.clients.length; i++) {
-//     if (this.clients[i].ip == client.ip || this.clients[i].hmac == client.hmac ) {
-//       return false;
-//     }
-//   }
-
-//   return true;
-// };
 
 groupSchema.methods.removeClient = function(client, callback) {
   redis.lrem(`groups:${this._id}:clients`, `0`, client._id, callback);
@@ -43,15 +19,6 @@ groupSchema.methods.removeClient = function(client, callback) {
 groupSchema.methods.enqueueClient = function(client, callback) {
   redis.lpush(`groups:${this._id}:clients`, client._id, callback);
 }
-
-// groupSchema.methods.getNextClientForPaydesk = function(paydesk_id, callback) {
-//   redis.rpoplpush(`groups:${this._id}:clients`,`paydesk:${paydesk_id}:client_called`,
-//     function(err, client_id) {
-//       if (err) return callback(err);
-//       Client.findOne({ _id: client_id }, callback);
-//     }
-//   );
-// }
 
 groupSchema.plugin(uniqueValidator);
 
@@ -71,10 +38,5 @@ Group.reset = function() {
   //   });
   // });
 }
-
-Group.findByPaydesk = function(id, callback) {
-  this.findOne({ "paydesks._id": id }, callback);
-};
-
 
 module.exports = Group;

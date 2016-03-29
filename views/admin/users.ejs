@@ -18,7 +18,8 @@
         <thead>
           <th>Nombre</th>
           <th>Rol</th>
-          <!-- <th>Editar</th> -->
+          <th></th>
+          <th></th>
         </thead>
         <tbody>
 
@@ -26,7 +27,7 @@
             <td>{{user.username}}</td>
             <td>{{user.role == 'admin' ? "Admin" : "Caja"}}</td>
             <td><a ng-click="delete(user)" href="#"><span class="glyphicon glyphicon-trash" ></span></a></td>
-            <!-- <td><a ng-click="_edit(user)" href="#"><span class="glyphicon glyphicon-edit" ></span></a></td> -->
+            <td><a ng-click="_edit(user)" href="#"><span class="glyphicon glyphicon-edit" ></span></a></td>
           </tr>
 
         </tbody>
@@ -60,7 +61,7 @@
 
           <div class="form-group">
             <label for="inputPassword">Password</label>
-            <input type="password" class="form-control" id="inputPassword" placeholder="Pasword" ng-model="user.password">
+            <input type="password" class="form-control" id="inputPassword" placeholder="Password" ng-model="user.password">
           </div>
         </div>
         <div class="modal-footer">

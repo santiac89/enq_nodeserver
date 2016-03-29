@@ -23,10 +23,7 @@ router.get('/', function(req, res) {
 router.delete('/:id', function(req, res) {
   User.findOne({ _id: req.params.id }).exec(function(err, user) {
 
-    if (err) {
-      res.json(404,err);
-      return;
-    }
+    if (!user || err) return res.json(404, err);
 
     user.remove();
     res.json(user);
@@ -35,7 +32,6 @@ router.delete('/:id', function(req, res) {
 
 router.post('/', function(req, res, next) {
   User.register(new User({ username: req.body.username }), req.body.password, function(err, user) {
-
 
     if (err) {
       console.log('error while user register!', err);
@@ -48,6 +44,24 @@ router.post('/', function(req, res, next) {
     console.log('user registered!');
 
     res.json(user);
+  });
+});
+
+router.put('/:id', function(req, res) {
+  User.findOne({_id: req.params.id }).exec(function(err, user) {
+
+    if (!user) return res.json(404,{});
+
+    user.username = req.body.username;
+    user.role = req.body.role;
+
+    user.setPassword(req.body.password, function() {
+      user.save(function(err) {
+        if (err) return res.json(500, err);
+        res.json(user);
+      });
+    });
+
   });
 });
 

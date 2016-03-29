@@ -30,6 +30,11 @@ a.navbar-brand img {
   padding-right: 2%;
 }
 
+td.text-center {
+  text-align: center;
+  vertical-align: center;
+}
+
 .small {
   font-size: 15px;
 }

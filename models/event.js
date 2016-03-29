@@ -31,7 +31,6 @@ var Emitter = {
 
     this.createEvent(eventName, client, payload);
   },
-
   clientConfirm: function(client, paydesk) {
     this.createEventWithPaydesk("client_confirm", client, paydesk);
   },
@@ -41,7 +40,6 @@ var Emitter = {
   clientCalled: function(client, paydesk) {
     this.createEventWithPaydesk("client_called", client, paydesk);
   },
-
   clientRemovedFromPaydesk: function(client, paydesk, reason) {
     this.createEventWithPaydesk("client_removed_from_paydesk", client, paydesk, { reason: reason });
   },

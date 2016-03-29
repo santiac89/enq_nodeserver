@@ -39,9 +39,9 @@ router.get('/:id', function(req, res) {
 });
 
 router.get('/:id/group', function(req, res) {
-  Group.findByPaydesk(req.params.id).exec(function(err,group) {
-    if (!group || err) return res.json(404,err);
-    res.json(group);
+  Paydesk.findOne({ _id: req.params.id }).populate('group').exec(function(err, paydesk) {
+    if (!paydesk || err) return res.json(404,err);
+    res.json(paydesk.group);
   })
 });
 

@@ -63,7 +63,6 @@ var ClientCaller = function(client, paydesk, group) {
 
   this.OnSocketClose = function(socket, had_error) {
     console.log(`[${Date.now()}] SERVER SOCKET ${this.client.number} CLOSED ${had_error ? '(ERROR)' : ''}`);
-
   }
 
   this.OnSocketTimeout = function(socket) {

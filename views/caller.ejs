@@ -5,12 +5,12 @@
     <p>
       <div class="row visible-xs-block">
         <span class="small">Caja</span> <span class="colored small"><%= paydesk.number %></span>
-        <span class="small"> - Tipo:</span> <span class="colored small" ><%= paydesk.group.name %></span>
+        <span class="small"> - </span> <span class="colored small" ><%= paydesk.group.name %></span>
       </div>
 
       <div class="row hidden-xs">
         <span class="medium">Caja</span> <span class="colored medium"><%= paydesk.number %></span>
-        <span class="medium"> - Tipo:</span> <span class="colored medium" ><%= paydesk.group.name %></span>
+        <span class="medium"> - </span> <span class="colored medium" ><%= paydesk.group.name %></span>
       </div>
     </p>
 
@@ -20,26 +20,29 @@
         <div class="panel-heading">
           <h3 class="panel-title">Último Cliente</h3>
         </div>
-        <div class="panel-body">
-           <div class="row">
-            <p class="text-center" style="margin-bottom: 0px;">
-              <i class="fa fa-ticket fa-2x"></i>&nbsp;
-              <span class="bold colored extra-big" ng-bind="current_client.number"></span>
-            </p>
-          </div>
-          <div class="row">
-            <p class="text-center" style="margin-bottom: 0px;">
+        <table class="table">
+          <tr>
+            <td class="text-left">
+              <i class="fa fa-ticket fa-2x"></i>
+            </td>
+            <td class="bold colored medium text-center" ng-bind="current_client.number">
+            </td>
+          </tr>
+          <tr>
+            <td>
               <i class="fa fa-clock-o fa-2x"></i>&nbsp;
-              <span class="bold colored big" ng-bind="formatTimestamp(current_client.enqueue_time)"></span>
-            </p>
-          </div>
-          <div class="row">
-            <p class="text-center" style="margin-bottom: 0px;">
-              <i class="fa fa-exclamation-circle fa-lg"></i>&nbsp;
-              <span class="bold colored small" ng-bind="current_client.response"></span>
-            </p>
-          </div>
-        </div>
+            </td>
+            <td class="bold colored medium text-center" ng-bind="formatTimestamp(current_client.enqueue_time)">
+            </td>
+          </tr>
+           <tr>
+            <td>
+              <i class="fa fa-exclamation-circle fa-2x"></i>&nbsp;
+            </td>
+            <td class="bold colored medium text-center" ng-bind="current_client.response">
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
 
@@ -48,26 +51,29 @@
         <div class="panel-heading">
           <h3 class="panel-title">Próximo Cliente</h3>
         </div>
-        <div class="panel-body">
-           <div class="row">
-            <p class="text-center" style="margin-bottom: 0px;">
-              <i class="fa fa-ticket fa-2x"></i>&nbsp;
-              <span class="bold colored extra-big" ng-bind="called_client.number"></span>
-            </p>
-          </div>
-          <div class="row">
-            <p class="text-center" style="margin-bottom: 0px;">
+        <table class="table">
+          <tr>
+            <td class="text-left">
+              <i class="fa fa-ticket fa-2x"></i>
+            </td>
+            <td class="bold colored medium text-center" ng-bind="called_client.number">
+            </td>
+          </tr>
+          <tr>
+            <td>
               <i class="fa fa-clock-o fa-2x"></i>&nbsp;
-              <span class="bold colored big" ng-bind="formatTimestamp(called_client.enqueue_time)"></span>
-            </p>
-          </div>
-          <div class="row">
-            <p class="text-center" style="margin-bottom: 0px;">
-              <i class="fa fa-exclamation-circle fa-lg"></i>&nbsp;
-              <span class="bold colored small" ng-bind="called_client.response"></span>
-            </p>
-          </div>
-        </div>
+            </td>
+            <td class="bold colored medium text-center" ng-bind="formatTimestamp(called_client.enqueue_time)">
+            </td>
+          </tr>
+           <tr>
+            <td>
+              <i class="fa fa-exclamation-circle fa-2x"></i>&nbsp;
+            </td>
+            <td class="bold colored medium text-center" ng-bind="called_client.response">
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>
@@ -83,7 +89,7 @@
           <h4 class="modal-title">Esperando por el cliente...</h4>
         </div>
         <div class="modal-body" style="text-align: center; font-size: 20px;">
-          <p id="timeout" class="colored"></p>
+          <p id="timeout" class="colored bold big"></p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-primary form-control" data-dismiss="modal">Cliente en caja</button>
@@ -138,7 +144,7 @@
                 $("#call_button").removeAttr("disabled");
                 $scope.current_client = $scope.called_client;
                 $scope.called_client = {};
-                $scope.current_client.response = "Cliente no disponible.";
+                $scope.current_client.response = "No disponible";
                 clearInterval($scope.call_interval_id);
               break;
 
@@ -154,7 +160,7 @@
                 $("#call_button").removeAttr("disabled");
                 $scope.current_client = $scope.called_client;
                 $scope.called_client = {};
-                $scope.current_client.response = "Cliente no disponible.";
+                $scope.current_client.response = "No disponible";
                 clearInterval($scope.call_interval_id);
               break;
 
@@ -207,6 +213,8 @@
 
           }).error(function() {
               $scope.called_client.number = "-";
+              $scope.called_client.response = "-";
+              $scope.called_client.enqueue_time = "-";
           });
         }
       }
@@ -221,9 +229,9 @@
 
       $scope.startCallResponseTimeout = function(seconds) {
         var count =  seconds;
-        $scope.called_client.response = "Esperando respuesta... " + --count;
+        $scope.called_client.response = "Llamando... " + --count;
           $scope.call_interval_id = setInterval(function() {
-            $scope.called_client.response = "Esperando respuesta... " + count--;
+            $scope.called_client.response = "Llamando... " + count--;
             $scope.$apply();
 
             if (count == 0) {
@@ -250,23 +258,23 @@
         }, 1000);
       }
 
-      $scope.alertLackOfPaydesksInGroup = function() {
+      // $scope.alertLackOfPaydesksInGroup = function() {
 
-          var response = false;
+      //     var response = false;
 
-          $.ajax({ url: "/caller/<%= paydesk._id %>/group", async: false ,
-            success: function(group) {
+      //     $.ajax({ url: "/caller/<%= paydesk._id %>/group", async: false ,
+      //       success: function(group) {
 
-              var count = group.paydesks.filter(paydesk => { return paydesk.active }).length
+      //         var count = group.paydesks.filter(paydesk => { return paydesk.active }).length
 
-                if (count == 1 && confirm("Atención! Esta es la última caja activa en el grupo. Si la cierra, el grupo no estará disponible para los clientes. Desea continuar?")) {
+      //           if (count == 1 && confirm("Atención! Esta es la última caja activa en el grupo. Si la cierra, el grupo no estará disponible para los clientes. Desea continuar?")) {
 
-                }
-            }
-          });
+      //           }
+      //       }
+      //     });
 
 
-      }
+      // }
 
 
 
