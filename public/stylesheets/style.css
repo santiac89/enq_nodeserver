@@ -51,6 +51,12 @@ td.text-center {
   font-size: 30px;
 }
 
+div.close-button {
+  float: right;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
 /*.header .btn-logo  {
   background-color: #007CDC;
   background-image: none
