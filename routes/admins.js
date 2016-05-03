@@ -6,13 +6,13 @@ var Counter = require('../models/counter');
 
 router.get('/groups', function(req, res) {
   Group.find().exec(function(err,groups) {
-      res.render('admin/groups',{groups: groups, user: req.user });
-    });
+    res.render('admin/groups',{groups: groups, user: req.user });
+  });
 });
 
 router.get('/paydesks', function(req, res) {
   Group.find({},'_id name').exec(function(err, groups) {
-       res.render('admin/paydesks',{ groups: groups, user: req.user });
+    res.render('admin/paydesks',{ groups: groups, user: req.user });
   });
 });
 

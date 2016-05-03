@@ -1,8 +1,9 @@
 var express = require('express');
 var router = express.Router();
 var Group = require('../models/group');
-var Client = require('../models/client');
+var Client = require('../models/client').Model;
 var Counters = require('../models/counter');
+var Logger = require('../util/logger');
 
 router.get('/groups', function(req, res) {
   Group.find({}, function(err,groups) {
@@ -12,6 +13,14 @@ router.get('/groups', function(req, res) {
 
 router.delete('/clients/:id', function(req, res) {
   Client.findOne({ _id: req.params.id }).populate("group").exec(function(err, client) {
+
+    if (!client) return res.status(404).end();
+
+    if (err) {
+      Logger.error(err);
+      return res.status(500).end();
+    }
+
     client.group.removeClient(client);
     client.saveToHistory();
     client.remove();
@@ -22,12 +31,19 @@ router.delete('/clients/:id', function(req, res) {
 router.post('/groups/:id/clients', function(req, res) {
   Group.findOne({ _id: req.params.id }, function(err, group) {
 
-    if (!group || err) {
-      res.json(404,err);
-      return;
+    if (!group) return res.status(404).end();
+
+    if (err) {
+      Logger.error(err);
+      return res.status(500).end();
     }
 
     Counters.getNextSequence("number", function(err, counter) {
+
+      if (err) {
+        Logger.error(err);
+        return res.status(500).end();
+      }
 
       var client_info = {
         ip: req.connection.remoteAddress || req.socket.remoteAddress || req.connection.socket.remoteAddress,
@@ -37,9 +53,18 @@ router.post('/groups/:id/clients', function(req, res) {
       }
 
       Client.findOrCreate(client_info, function(err, client) {
-        if (err) return res.json(500, err);
+
+        if (err) {
+          Logger.error(err);
+          return res.status(500).end();
+        }
 
         group.enqueueClient(client, function(err) {
+
+          if (err) {
+            Logger.error(err);
+            return res.status(500).end();
+          }
 
           client.group = group;
           client.save();

@@ -1,4 +1,5 @@
 var Paydesk = require('../models/paydesk');
+var Logger = require('./logger');
 
 var PaydeskBus = {
 
@@ -47,16 +48,22 @@ var PaydeskBus = {
     Paydesk.findOne({ _id: paydesk_id }).exec(function(err, paydesk) {
       if (!paydesk || err) return;
       paydesk.active = false;
-      paydesk.save();
-      console.log("Paydesk " + paydesk.number + " deactivated.");
+      paydesk.save(function(err) {
+        if (err) return Logger.error(err);
+        Logger.info("Paydesk " + paydesk.number + " deactivated.");
+      });
     });
   },
 
   enablePaydesk: function(paydesk_id) {
     Paydesk.findOne({ _id: paydesk_id }).exec(function(err, paydesk) {
       paydesk.active = true;
-      paydesk.save();
-      console.log("Paydesk " + paydesk.number + " activated.");
+
+      paydesk.save(function(err) {
+        if (err) return Logger.error(err);
+        Logger.info("Paydesk " + paydesk.number + " activated.");
+      });
+
     });
   }
 

@@ -3,6 +3,7 @@ var client = dgram.createSocket("udp4");
 var config = require('../config.js');
 var network = require('../util/network');
 var net = require('net');
+var Logger = require('./logger');
 
 var broadcast_address = network.broadcast();
 var broadcast_port = config.service_discovery.broadcast_listen_port;
@@ -19,7 +20,7 @@ var service_info = {
 client.bind(broadcast_port, broadcast_address);
 
 client.on("listening", function () {
-  console.log("Waiting for client query on "+broadcast_address+":"+broadcast_port);
+  Logger.info("Waiting for client query on "+broadcast_address+":"+broadcast_port);
   client.setBroadcast(true);
 });
 

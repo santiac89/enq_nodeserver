@@ -1,13 +1,14 @@
 var mongoose = require('mongoose');
 var Schema   = mongoose.Schema;
+var clientSchema = require('./client').Schema;
 var config   = require('../config');
+var Logger = require('../util/logger');
 
 var eventSchema = Schema({
   name:    { type: String, required: true },
   app:     { type: String, required: true },
-  client:  { type: Schema.Types.ObjectId, ref: 'Client' },
+  client:  clientSchema,
   payload: { type: Schema.Types.Mixed },
-
   issued_at:  { type: Date, default: function() { return Date.now() }},
   created_at: { type: Date, default: function() { return Date.now() }}
 });
@@ -21,7 +22,10 @@ var Emitter = {
 
     if (payload) event.payload = payload;
 
-    event.save();
+    event.save((err, event) => {
+      Logger.debug(event);
+    });
+
   },
   createEventWithPaydesk: function(eventName, client, paydesk, payload) {
     if (!payload) payload = {};

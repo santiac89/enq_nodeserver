@@ -20,35 +20,50 @@ var clientSchema = mongoose.Schema({
 
 clientSchema.plugin(uniqueValidator);
 
-clientSchema.methods.setReenqueued = function(reason) {
+clientSchema.methods.reenqueue = function(reason, callback) {
   this.reenqueue_count++;
+  this.paydesk = undefined;
   this.status = reason;
+  this.save(callback || () => {});
   return this;
 }
 
-clientSchema.methods.setConfirmed = function() {
+clientSchema.methods.confirm = function(callback) {
   this.status = "confirmed";
   this.confirmed_time = Date.now();
   return this;
 }
 
-clientSchema.methods.setCalledBy = function(paydesk_number) {
+clientSchema.methods.setCalledBy = function(paydesk_number, callback) {
   this.status = 'called';
   this.paydesk = paydesk_number;
   this.called_time = Date.now();
+  this.save(callback || () => {});
   return this;
 }
 
-clientSchema.methods.setErrored = function(err) {
+clientSchema.methods.error = function(err, callback) {
   this.status = 'errored';
   this.errored_time = Date.now();
   this._errors = JSON.stringify(err);
+  this.save(callback || () => {});
   return this;
 }
 
-clientSchema.methods.setCancelled = function() {
+clientSchema.methods.cancel = function(callback) {
   this.status = 'cancelled';
   this.cancelled_time = Date.now();
+  this.save(callback || () => {});
+  return this;
+}
+
+clientSchema.methods.leave = function(callback) {
+  this.status = 'idle';
+  this.reenqueue_count = 0;
+  this.group = undefined;
+  this.paydesk = undefined;
+  this.number = undefined;
+  this.save(callback || () => {});
   return this;
 }
 
@@ -103,4 +118,5 @@ Client.findOrCreate = function(client_info, callback) {
   });
 }
 
-module.exports = Client;
+exports.Model = Client;
+exports.Schema = clientSchema;

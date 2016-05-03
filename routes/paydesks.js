@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var Group = require('../models/group');
 var Paydesk = require('../models/paydesk');
+var Logger = require('../util/logger');
 
 router.get('/', function(req, res) {
   Paydesk.find({}).populate('group').exec(function(err, paydesks) {
@@ -15,7 +16,11 @@ router.get('/:id', function(req, res) {
   if (!req.user) res.redirect('/');
 
   Paydesk.findOne(req.params.id).populate('group').exec(function(err, paydesk) {
-    if (!paydesk || err) return res.json(404, err);
+    if (!paydesk) return res.status(404).end();
+    if (err) {
+      Logger.error(err);
+      return res.status(500).end();
+    }
     res.json(paydesk);
   });
 
@@ -23,19 +28,34 @@ router.get('/:id', function(req, res) {
 
 router.delete('/:id', function(req, res) {
   Paydesk.findOne(req.params.id).exec(function(err, paydesk) {
-    if (!paydesk) return res.json(404, err);
+    if (!paydesk) return res.status(404).end();
+
+    if (err) {
+      Logger.error(err);
+      return res.status(500).end();
+    }
 
     paydesk.active = false
-    paydesk.save();
+    paydesk.save(function(err, paydesk) {
+      if (err) {
+        Logger.error(err);
+        return res.status(500).end();
+      }
 
-    res.json(paydesk);
+      res.json(paydesk);
+    });
   });
 });
 
 router.post('/', function(req, res) {
   Group.findOne({ _id: req.body.group }).exec(function(err, group) {
 
-    if (!group) return res.json(404,{ msg: `No group for that id`});
+    if (!group) return res.status(404).end();
+
+    if (err) {
+      Logger.error(err);
+      return res.status(500).end();
+    }
 
     var paydesk = new Paydesk({
       number: req.body.number,
@@ -44,7 +64,11 @@ router.post('/', function(req, res) {
     });
 
     paydesk.save(function(err, paydesk) {
-      if (err) return res.json(500, err);
+      if (err) {
+        Logger.error(err);
+        return res.status(500).end();
+      }
+
       res.json(paydesk);
     });
 
@@ -54,13 +78,22 @@ router.post('/', function(req, res) {
 router.put('/:id', function(req, res) {
   Paydesk.findOne({_id: req.params.id }).exec(function(err,paydesk) {
 
-    if (!paydesk) return res.json(404,{});
+    if (!paydesk) return res.status(404).end();
+
+    if (err) {
+      Logger.error(err);
+      return res.status(500).end();
+    }
 
     paydesk.number = req.body.number;
     paydesk.group = req.body.group;
 
     paydesk.save(function(err, paydesk) {
-      if (err) return res.json(500, err);
+      if (err) {
+        Logger.error(err);
+        return res.status(500).end();
+      }
+
       res.json(paydesk);
     });
 

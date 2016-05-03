@@ -1,6 +1,7 @@
 var PaydeskBus = require('./paydesk_bus');
 var config = require('../config');
 var net = require('net');
+var Logger = require('./logger');
 var ClientManager = require('./client_manager');
 var Emitter = require('../models/event');
 
@@ -33,10 +34,12 @@ var ClientCaller = function(client, paydesk, group) {
         next_estimated_time: 0
       }) + '\n';
 
+      Emmiter.createEvent('client_called', client, { paydesk: paydesk });
+
       socket.write(call_message, 'UTF-8', (err) => {
-        if (err) return console.log(err);
-        console.log(`[${Date.now()}] SERVER HELLO TO CLIENT ${this.client.number}`);
-        socket.setTimeout(config.call_timeout*1000);
+        if (err) return Logger.error(err);
+        socket.setTimeout(config.call_timeout * 1000);
+        this.manager.OnClientCalled();
       });
 
   };
@@ -44,9 +47,6 @@ var ClientCaller = function(client, paydesk, group) {
   this.OnSocketData = function(socket, response) {
 
     switch (response.toString()) {
-      case "call_received":
-        this.manager.OnClientCalled();
-      break;
       case "confirm":
         this.manager.OnClientConfirm();
       break;
@@ -74,10 +74,8 @@ var ClientCaller = function(client, paydesk, group) {
   this.OnSocketError = function(socket, err) {
     console.log(`[${Date.now()}] SERVER SOCKET ${this.client.number} ERROR ${err}`);
 
-    Emitter.createEvent('socket_closed_with_error', this.client , err);
-
     if (err.code == 'ECONNREFUSED') {
-      Emitter.clientUnreachable(this.client, this.paydesk, err);
+      Emmiter.createEvent('client_unreachable', this.client, { paydesk: this.paydesk, error: err });
     }
      // log other errors
     PaydeskBus.send(this.paydesk.number, "error");

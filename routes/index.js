@@ -2,10 +2,17 @@ var express = require('express');
 var router = express.Router();
 var passport = require('passport');
 var Paydesk = require('../models/paydesk');
+var Logger = require('../util/logger');
 
 router.post('/caller/login', passport.authenticate('local'), function(req, res) {
   Paydesk.find({}).populate('group').exec(function(err, paydesks) {
-    if (!paydesks || err) return res.json(404, err);
+
+    if (!paydesks) return res.status(404).end();
+
+    if (err) {
+      Logger.error(err);
+      return res.status(500).end();
+    }
     res.json(paydesks[0]);
   });
 });

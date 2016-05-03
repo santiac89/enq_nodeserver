@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var redis = require('redis').createClient();
-var Client = require('./client');
+var Client = require('./client').Model;
 
 var paydeskSchema = Schema({
   number: { type: Number, required: true },
@@ -37,12 +37,12 @@ paydeskSchema.methods.fetchNextClient = function(callback) {
 paydeskSchema.methods.waitForClient = function(client, callback) {
   this.confirmed_client = client;
   this.called_client = null; // remove called client
-  this.save();
+  this.save(callback || () => {});
 }
 
 paydeskSchema.methods.removeCalledClient = function(client, callback) {
   this.called_client = null;
-  this.save();
+  this.save(callback || () => {});
 }
 
 var Paydesk = mongoose.model('Paydesk', paydeskSchema);
