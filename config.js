@@ -9,6 +9,7 @@ config.mongo = {};
 config.mongo.address = "localhost";
 config.mongo.port = 27017;
 config.mongo.db = "enq";
+config.mongo.test_db = "enq_test";
 config.call_timeout = 30;
 config.reenqueue_limit = 2;
 config.admin = {};

@@ -13,6 +13,7 @@ router.post('/caller/login', passport.authenticate('local'), function(req, res) 
       Logger.error(err);
       return res.status(500).end();
     }
+
     res.json(paydesks[0]);
   });
 });

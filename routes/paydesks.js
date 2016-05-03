@@ -35,13 +35,11 @@ router.delete('/:id', function(req, res) {
       return res.status(500).end();
     }
 
-    paydesk.active = false
-    paydesk.save(function(err, paydesk) {
+    paydesk.remove(function(err, paydesk) {
       if (err) {
         Logger.error(err);
         return res.status(500).end();
       }
-
       res.json(paydesk);
     });
   });
