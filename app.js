@@ -59,6 +59,9 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
+/*
+******* ADMIN USER CONFIGURATION ********
+*/
 User.findOne({ username: "admin" }).exec(function(err, user) {
 
   if (!user) {

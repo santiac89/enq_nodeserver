@@ -32,7 +32,8 @@
     "redis": "*",
     "supertest": "1.2.0",
     "mocha": "2.4.5",
-    "should": "8.3.1"
+    "should": "8.3.1",
+    "node-pushnotifications": "0.1.8"
   },
   "devDependencies": {
     "should": "^8.3.1"
